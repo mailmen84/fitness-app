@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../today/domain/today_dashboard.dart';
@@ -53,11 +53,17 @@ class MealLoggingFlowController extends Notifier<MealLoggingFlowState> {
   }
 
   void setSelectedDate(DateTime date) {
-    state = state.copyWith(selectedDate: DateUtils.dateOnly(date));
+    state = state.copyWith(
+      selectedDate: DateUtils.dateOnly(date),
+      submission: const AsyncData(null),
+    );
   }
 
   void setMealSection(TodayMealSectionCode mealSection) {
-    state = state.copyWith(mealSection: mealSection);
+    state = state.copyWith(
+      mealSection: mealSection,
+      submission: const AsyncData(null),
+    );
   }
 
   void clearSubmissionState() {

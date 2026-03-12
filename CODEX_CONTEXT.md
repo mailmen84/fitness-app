@@ -1,6 +1,6 @@
 # CODEX_CONTEXT
 
-This file is the Codex-oriented source of truth for the repository state as of March 11, 2026.
+This file is the Codex-oriented source of truth for the repository state as of March 12, 2026.
 
 ## Project Identity
 
@@ -113,13 +113,14 @@ These milestones are already present in the repository state:
 
 ## Current Milestone
 
-Current milestone: runtime verification and stabilization.
+Current milestone: post-MVP polish and cleanup.
 
 Status:
 
 - the core MVP structure is now present across Today, meal logging, Nutrition, Progress, and More/settings
+- a working MVP runtime has now been achieved on a real local pass across Today, Add, Nutrition, Progress, and More/settings
 - the current job is not to add a new product module
-- the current job is to improve execution readiness, low-risk consistency, setup accuracy, and local verification clarity
+- the current job is to improve polish, cleanup, stability, consistency, and maintainability from that baseline
 
 ## What Already Exists
 
@@ -138,6 +139,7 @@ Status:
 - weight history and add-weight flow
 - measurement history and add-measurement flow
 - More/Profile home with profile summary, navigation rows, settings screens, support placeholder, and polished PED placeholder
+- working MVP runtime on a real local pass across Today, Add, Nutrition, Progress, and More/settings
 
 ### Backend
 
@@ -168,14 +170,14 @@ Status:
 
 ## Current Functional Focus
 
-The active focus is runtime verification and stabilization.
+The active focus is post-MVP polish and cleanup.
 
 That means the next work should:
 
-- inspect setup gaps and environment assumptions
-- clean up low-risk inconsistencies in Flutter and backend seams
-- improve execution-readiness and documentation accuracy
-- avoid creating a new product vertical slice
+- clean up low-risk inconsistencies in Flutter screens, copy, spacing, button labels, and card alignment
+- smooth out save and refresh behavior without introducing lifecycle regressions
+- improve backend response and error-handling consistency where useful
+- keep documentation practical while avoiding a new product vertical slice
 
 ## Backend Meal Rules
 
@@ -239,4 +241,4 @@ Meaning:
 
 ## Expected Next Step After The Current Milestone
 
-After runtime verification and stabilization, the next step should depend on what the real local verification pass uncovers: fix the remaining setup/runtime blockers first, then choose the next product slice from a clean baseline.
+After post-MVP polish and cleanup, the next step should come from the cleaner baseline: deepen automated verification and regression coverage or intentionally choose the next product slice.

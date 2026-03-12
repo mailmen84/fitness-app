@@ -34,14 +34,14 @@ class MoreScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'More & profile',
+                  'More & settings',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'This area collects account, goal, preference, and future-module entry points so the MVP feels coherent without adding extra product scope.',
+                  'Manage profile details, goals, preferences, and placeholder areas from one place without expanding product scope.',
                   style: theme.textTheme.bodyLarge,
                 ),
               ],
@@ -52,12 +52,12 @@ class MoreScreen extends ConsumerWidget {
             skipLoadingOnRefresh: false,
             skipLoadingOnReload: false,
             loading: () => const AppLoadingBlock(
-              title: 'Loading profile',
+              title: 'Loading account summary',
               message:
-                  'Pulling the current user summary, goal settings, and preference details.',
+                  'Pulling the current profile, goal, and preference summaries.',
             ),
             error: (error, _) => AppErrorBlock(
-              title: 'Could not load profile',
+              title: 'Could not load account summary',
               message: moreErrorMessage(error),
               action: AppPrimaryButton(
                 label: 'Retry',
@@ -120,7 +120,7 @@ class MoreScreen extends ConsumerWidget {
                       SelectableText(Environment.defaultApiBaseUrl),
                       const SizedBox(height: 16),
                       Text(
-                        'Auth in this repository is still dev-only. Sign out is local preview state only until real auth is added.',
+                        'Auth in this repository is still dev-only. Sign out only clears local preview state until real auth is added.',
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 20),

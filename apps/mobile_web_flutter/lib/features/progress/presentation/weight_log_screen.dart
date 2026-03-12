@@ -77,7 +77,7 @@ class WeightLogScreen extends ConsumerWidget {
                       onPressed: () => context.go(AppRoutePaths.progressAddWeight),
                     ),
                     AppSecondaryButton(
-                      label: 'Back to overview',
+                      label: 'Back to Progress',
                       onPressed: () => context.go(AppRoutePaths.progress),
                     ),
                   ],

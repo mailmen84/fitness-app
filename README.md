@@ -106,14 +106,15 @@ The following milestones are already present in the repository state:
 
 ## Current Milestone
 
-Current milestone: runtime verification and stabilization.
+Current milestone: post-MVP polish and cleanup.
 
-This milestone is focused on making the existing MVP structure more execution-ready and internally consistent without introducing major new features.
+This phase assumes the core MVP runtime is now working and focuses on improving stability, consistency, usability, and maintainability without introducing major new features.
 
 ## Current Product Scope
 
 In scope right now:
 
+- working MVP runtime across Today, Add, Nutrition, Progress, and More/settings on a real local pass
 - preview auth and onboarding flow scaffolding
 - Today dashboard day selection, summary cards, and stable backend meal loading
 - food search from a development seed dataset
@@ -131,7 +132,7 @@ In scope right now:
 Still not product-complete:
 
 - real authentication and token issuing
-- end-to-end runtime verification on a real machine with working Flutter and Python toolchains
+- broader regression coverage across browsers, devices, and automated checks
 - advanced nutrition analytics, charts, micronutrient drill-downs, recipes, or barcode flows
 - advanced Progress analytics, edit/delete flows, photos, or coaching logic
 - production hardening, release packaging, and deployment readiness
@@ -300,11 +301,11 @@ The current auth path is intentionally temporary:
 
 ### Current environment caveat
 
-In the current Codex environment used to shape this repo, Flutter and Python toolchains may be unavailable or partially broken. That means some milestones are structurally implemented but not fully runtime-verified here.
+In the current Codex environment used to shape this repo, Flutter and Python toolchains may still be unavailable or partially broken. The MVP runtime now works on a real local machine, but some cleanup work here may still be source-inspected rather than fully executed.
 
 ## Next Step After The Current Milestone
 
-After runtime verification and stabilization, the next step should be driven by the outcome of the real local verification pass: fix blockers, close execution gaps, and only then decide on the next feature milestone.
+After post-MVP polish and cleanup, the next step should come from the cleaner baseline: either deepen automated verification and regression coverage or choose the next feature milestone intentionally.
 
 ## Final Guardrail
 

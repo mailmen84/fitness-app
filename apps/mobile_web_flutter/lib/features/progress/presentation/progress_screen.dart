@@ -57,7 +57,7 @@ class ProgressScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Progress foundation',
+                  'Progress',
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w700,
@@ -72,7 +72,7 @@ class ProgressScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Track the latest body weight, recent body measurements, and the current goal without adding advanced analytics yet.',
+                  'Review the latest body weight, recent measurements, and the current goal in one place.',
                   style: theme.textTheme.bodyLarge,
                 ),
                 SizedBox(height: tokens.sectionSpacing),

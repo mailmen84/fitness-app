@@ -602,7 +602,7 @@ class _ContributorRow extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${contributor.mealSectionTitle} • ${contributor.quantityLabel}',
+                '${contributor.mealSectionTitle} - ${contributor.quantityLabel}',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

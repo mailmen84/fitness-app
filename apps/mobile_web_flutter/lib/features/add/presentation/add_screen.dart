@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,14 +52,14 @@ class AddScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Next step',
+                  'Choose a flow',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Search the development food set, inspect nutrition details, and add the item straight into the selected meal.',
+                  'Search the development food set, review nutrition details, and add the item into the selected meal.',
                   style: theme.textTheme.bodyMedium,
                 ),
                 SizedBox(height: tokens.sectionSpacing),
@@ -79,9 +79,9 @@ class AddScreen extends ConsumerWidget {
           ),
           SizedBox(height: tokens.sectionSpacing),
           const AppEmptyStateBlock(
-            title: 'Food search is the real flow now',
+            title: 'More add shortcuts come later',
             message:
-                'Barcode scanning, recipes, and faster shortcuts stay deferred. This milestone focuses on the first stable search and add-to-meal path only.',
+                'Barcode scanning, recipes, and extra shortcuts stay out of scope for now. Use food search or quick add setup for the stable MVP path.',
           ),
         ],
       ),

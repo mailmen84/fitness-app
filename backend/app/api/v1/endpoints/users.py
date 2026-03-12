@@ -8,6 +8,20 @@ from app.domain.users.schemas import CurrentUserUpdate, UserWithProfileRead
 router = APIRouter()
 
 
+def _current_user_not_found_http_exception() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='Current user was not found.',
+    )
+
+
+def _email_already_in_use_http_exception() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail='That email address is already in use.',
+    )
+
+
 @router.get('/me', response_model=UserWithProfileRead, summary='Get the current user')
 async def read_current_user(
     current_user: User = Depends(get_current_user),
@@ -15,10 +29,7 @@ async def read_current_user(
 ) -> User:
     user = await users_service.get_current_user(current_user.id)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Current user was not found.',
-        )
+        raise _current_user_not_found_http_exception()
     return user
 
 
@@ -31,14 +42,8 @@ async def update_current_user(
     try:
         return await users_service.update_current_user(current_user.id, payload)
     except LookupError as error:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Current user was not found.',
-        ) from error
+        raise _current_user_not_found_http_exception() from error
     except ValueError as error:
         if str(error) != 'email_already_in_use':
             raise
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail='That email address is already in use.',
-        ) from error
+        raise _email_already_in_use_http_exception() from error

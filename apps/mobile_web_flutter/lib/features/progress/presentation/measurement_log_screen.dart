@@ -78,7 +78,7 @@ class MeasurementLogScreen extends ConsumerWidget {
                           context.go(AppRoutePaths.progressAddMeasurement),
                     ),
                     AppSecondaryButton(
-                      label: 'Back to overview',
+                      label: 'Back to Progress',
                       onPressed: () => context.go(AppRoutePaths.progress),
                     ),
                   ],
