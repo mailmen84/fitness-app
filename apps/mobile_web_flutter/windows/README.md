@@ -1,4 +1,7 @@
 # Windows runner placeholder
 
-Run lutter create . --platforms=windows from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the Windows runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=windows
+```

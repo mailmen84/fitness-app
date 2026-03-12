@@ -1,52 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/config/environment.dart';
+import '../../../core/presentation/widgets/widgets.dart';
+import '../application/app_shell_destinations.dart';
 
-class AppShellPage extends StatelessWidget {
-  const AppShellPage({super.key});
+class AppShellPage extends ConsumerWidget {
+  const AppShellPage({
+    required this.navigationShell,
+    super.key,
+  });
+
+  final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(Environment.appName),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final destinations = ref.watch(appShellDestinationsProvider);
+    final currentDestination = destinations[navigationShell.currentIndex];
+
+    return AppScaffold(
+      appBar: AppTopAppBar(
+        title: '${Environment.appName} - ${currentDestination.label}',
+        automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Monorepo scaffold ready',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'This starter keeps the Flutter app intentionally minimal while the project foundations are set up.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Configured API base URL',
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  SelectableText(
-                    Environment.defaultApiBaseUrl,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: navigationShell.currentIndex,
+        destinations: [
+          for (final destination in destinations)
+            NavigationDestination(
+              icon: Icon(destination.icon),
+              label: destination.label,
             ),
-          ),
-        ),
+        ],
+        onDestinationSelected: (index) {
+          navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          );
+        },
       ),
+      body: navigationShell,
     );
   }
 }
-

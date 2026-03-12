@@ -1,4 +1,7 @@
 # Web runner placeholder
 
-Run lutter create . --platforms=web from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the web runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=web
+```

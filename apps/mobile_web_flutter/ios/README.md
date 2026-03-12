@@ -1,4 +1,7 @@
 # iOS runner placeholder
 
-Run lutter create . --platforms=ios from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the iOS runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=ios
+```

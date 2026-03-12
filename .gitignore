@@ -27,10 +27,12 @@ build/
 .vscode/
 
 # Platform artifacts
-android/.gradle/
-android/local.properties
-ios/Pods/
-ios/.symlinks/
-macos/Pods/
-linux/flutter/ephemeral/
-windows/flutter/ephemeral/
+apps/mobile_web_flutter/android/.gradle/
+apps/mobile_web_flutter/android/local.properties
+apps/mobile_web_flutter/ios/.symlinks/
+apps/mobile_web_flutter/ios/Flutter/ephemeral/
+apps/mobile_web_flutter/ios/Pods/
+apps/mobile_web_flutter/macos/Flutter/ephemeral/
+apps/mobile_web_flutter/macos/Pods/
+apps/mobile_web_flutter/linux/flutter/ephemeral/
+apps/mobile_web_flutter/windows/flutter/ephemeral/

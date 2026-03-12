@@ -1,4 +1,7 @@
 # Linux runner placeholder
 
-Run lutter create . --platforms=linux from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the Linux runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=linux
+```

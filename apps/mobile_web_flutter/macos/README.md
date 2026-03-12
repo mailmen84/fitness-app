@@ -1,4 +1,7 @@
 # macOS runner placeholder
 
-Run lutter create . --platforms=macos from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the macOS runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=macos
+```

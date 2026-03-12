@@ -1,4 +1,7 @@
 # Android runner placeholder
 
-Run lutter create . --platforms=android from this app directory once Flutter is installed.
+From `apps/mobile_web_flutter`, generate the Android runner once Flutter is installed:
 
+```bash
+flutter create . --platforms=android
+```

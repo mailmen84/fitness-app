@@ -1,0 +1,1 @@
+"""Goal domain models and schemas."""
