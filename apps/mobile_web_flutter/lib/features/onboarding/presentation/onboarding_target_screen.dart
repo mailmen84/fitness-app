@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/app_api_client.dart';
 import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
@@ -21,6 +22,8 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _dailyCalorieTargetController;
   bool _showSelectionError = false;
+  bool _isSubmitting = false;
+  String? _submissionError;
 
   @override
   void initState() {
@@ -37,7 +40,7 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
     super.dispose();
   }
 
-  void _complete() {
+  Future<void> _complete() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -49,19 +52,51 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
     }
 
     final calorieTargetText = _dailyCalorieTargetController.text.trim();
-    ref.read(onboardingControllerProvider.notifier).setTarget(
-          targetFocus: draft.targetFocus!,
-          dailyCalorieTarget: calorieTargetText.isEmpty
-              ? null
-              : int.parse(calorieTargetText),
-        );
-    ref.read(onboardingControllerProvider.notifier).markCompleted();
-    ref.read(authSessionProvider.notifier).markOnboardingComplete();
+    final dailyCalorieTarget =
+        calorieTargetText.isEmpty ? null : int.parse(calorieTargetText);
 
-    if (!mounted) {
-      return;
+    setState(() {
+      _isSubmitting = true;
+      _submissionError = null;
+      _showSelectionError = false;
+    });
+
+    try {
+      ref.read(onboardingControllerProvider.notifier).setTarget(
+            targetFocus: draft.targetFocus!,
+            dailyCalorieTarget: dailyCalorieTarget,
+          );
+      await ref.read(authSessionProvider.notifier).completeOnboarding(
+            dailyCalorieTarget: dailyCalorieTarget,
+          );
+      ref.read(onboardingControllerProvider.notifier).markCompleted();
+
+      if (!mounted) {
+        return;
+      }
+      context.go(AppRoutePaths.today);
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError =
+            'Could not finish onboarding right now. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
-    context.go(AppRoutePaths.today);
   }
 
   @override
@@ -99,7 +134,7 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Finish the preview flow by selecting a target emphasis and an optional daily calorie placeholder.',
+                      'Finish onboarding by selecting a target emphasis and an optional daily calorie target.',
                       style: theme.textTheme.bodyLarge,
                     ),
                   ],
@@ -111,6 +146,13 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                   title: 'Choose a target focus',
                   message:
                       'Select one target direction before finishing onboarding.',
+                ),
+              ],
+              if (_submissionError != null) ...[
+                SizedBox(height: tokens.sectionSpacing),
+                AppErrorBlock(
+                  title: 'Could not finish onboarding',
+                  message: _submissionError!,
                 ),
               ],
               for (final option in TargetFocusOption.values) ...[
@@ -125,16 +167,18 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                     contentPadding: EdgeInsets.zero,
                     title: Text(option.title),
                     subtitle: Text(option.description),
-                    onChanged: (value) {
-                      if (value == null) {
-                        return;
-                      }
-                      setState(() => _showSelectionError = false);
-                      ref.read(onboardingControllerProvider.notifier).setTarget(
-                            targetFocus: value,
-                            dailyCalorieTarget: draft.dailyCalorieTarget,
-                          );
-                    },
+                    onChanged: _isSubmitting
+                        ? null
+                        : (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() => _showSelectionError = false);
+                            ref.read(onboardingControllerProvider.notifier).setTarget(
+                                  targetFocus: value,
+                                  dailyCalorieTarget: draft.dailyCalorieTarget,
+                                );
+                          },
                   ),
                 ),
               ],
@@ -144,7 +188,7 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Optional placeholder target',
+                      'Optional target',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -173,7 +217,7 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Preview summary',
+                      'Onboarding summary',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -195,23 +239,33 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                   ],
                 ),
               ),
+              if (_isSubmitting) ...[
+                SizedBox(height: tokens.sectionSpacing),
+                const AppLoadingBlock(
+                  title: 'Finalizing onboarding',
+                  message:
+                      'Saving the onboarding-complete flag for your account and opening Today.',
+                ),
+              ],
               SizedBox(height: tokens.sectionSpacing),
               AppPrimaryButton(
                 label: 'Finish onboarding',
                 expand: true,
-                onPressed: _complete,
+                onPressed: _isSubmitting ? null : _complete,
               ),
               const SizedBox(height: 12),
               AppSecondaryButton(
                 label: 'Back to activity',
                 expand: true,
-                onPressed: () => context.go(AppRoutePaths.onboardingActivity),
+                onPressed: _isSubmitting
+                    ? null
+                    : () => context.go(AppRoutePaths.onboardingActivity),
               ),
               SizedBox(height: tokens.sectionSpacing),
               const AppEmptyStateBlock(
-                title: 'Completion stays local for now',
+                title: 'Your account stays signed in',
                 message:
-                    'The app marks onboarding as complete in Riverpod state only. Real backend persistence wiring is intentionally left for a later integration pass.',
+                    'Finishing onboarding now also marks the authenticated account as onboarding-complete for future logins.',
               ),
             ],
           ),

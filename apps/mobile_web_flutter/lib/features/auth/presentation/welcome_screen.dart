@@ -6,14 +6,14 @@ import '../../../core/config/environment.dart';
 import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
-import '../application/auth_session.dart';
 import '../../onboarding/application/onboarding_controller.dart';
+import '../application/auth_session.dart';
 
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
-  void _signOut(WidgetRef ref) {
-    ref.read(authSessionProvider.notifier).signOut();
+  Future<void> _signOut(WidgetRef ref) async {
+    await ref.read(authSessionProvider.notifier).signOut();
     ref.read(onboardingControllerProvider.notifier).reset();
   }
 
@@ -30,11 +30,13 @@ class WelcomeScreen extends ConsumerWidget {
       onboardingDraft.hasTarget,
     ].where((step) => step).length;
 
-    final subtitle = session.isAuthenticated
-        ? session.needsOnboarding
-            ? 'Local session active. Keep moving through the setup flow before the protected app routes open up.'
-            : 'Local session active. The app shell is open, while real backend auth and secure storage remain deferred.'
-        : 'Preview the authentication and onboarding flow with local state before real backend providers are connected.';
+    final subtitle = session.isHydrating
+        ? 'Restoring your saved session and checking whether onboarding is complete.'
+        : session.isAuthenticated
+            ? session.needsOnboarding
+                ? 'Your account is signed in. Finish the setup flow before the main app shell opens.'
+                : 'Your account is signed in and your personal app shell is ready.'
+            : 'Create an account or sign in to access your own meals, nutrition, progress, and settings.';
 
     return AppScaffold(
       appBar: const AppTopAppBar(
@@ -50,7 +52,7 @@ class WelcomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Authentication-ready shell',
+                    'Fitness App',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -58,7 +60,13 @@ class WelcomeScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Text(subtitle, style: theme.textTheme.bodyLarge),
                   SizedBox(height: tokens.sectionSpacing),
-                  if (!session.isAuthenticated) ...[
+                  if (session.isHydrating)
+                    const AppLoadingBlock(
+                      title: 'Restoring session',
+                      message:
+                          'Checking the saved token on this device before opening the app.',
+                    )
+                  else if (!session.isAuthenticated) ...[
                     AppPrimaryButton(
                       label: 'Log in',
                       expand: true,
@@ -84,7 +92,7 @@ class WelcomeScreen extends ConsumerWidget {
                     ),
                   ] else ...[
                     AppPrimaryButton(
-                      label: 'Open Today preview',
+                      label: 'Open Today',
                       expand: true,
                       onPressed: () => context.go(AppRoutePaths.today),
                     ),
@@ -99,32 +107,32 @@ class WelcomeScreen extends ConsumerWidget {
               ),
             ),
             SizedBox(height: tokens.sectionSpacing),
-            if (!session.isAuthenticated)
+            if (!session.isHydrating && !session.isAuthenticated)
               const AppEmptyStateBlock(
-                title: 'No local session yet',
+                title: 'No session yet',
                 message:
-                    'Sign up to enter the onboarding sequence, or use login to preview the protected shell without real backend auth.',
+                    'Create a new account to begin onboarding, or log back in to reopen your existing data.',
               )
-            else
+            else if (!session.isHydrating)
               AppStandardCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Preview session',
+                      'Current session',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(session.displayName ?? 'Preview User'),
+                    Text(session.displayName ?? 'User'),
                     const SizedBox(height: 4),
                     Text(session.email ?? 'No email captured yet'),
                     const SizedBox(height: 16),
                     Text(
                       session.needsOnboarding
-                          ? 'Onboarding saved locally: $completedSteps of 4 steps complete.'
-                          : 'Protected routes are available in preview mode.',
+                          ? 'Onboarding draft: $completedSteps of 4 steps complete.'
+                          : 'Authenticated routes are available for this account.',
                     ),
                   ],
                 ),
@@ -147,9 +155,9 @@ class WelcomeScreen extends ConsumerWidget {
             ),
             SizedBox(height: tokens.sectionSpacing),
             const AppEmptyStateBlock(
-              title: 'Preview flow only',
+              title: 'Real auth is active',
               message:
-                  'Authentication and onboarding state are local-only in this milestone. Real backend auth integration is intentionally deferred.',
+                  'This build now uses backend signup, login, bearer auth, and session restore instead of the earlier dev-only auth path.',
             ),
           ],
         ),
@@ -157,3 +165,4 @@ class WelcomeScreen extends ConsumerWidget {
     );
   }
 }
+

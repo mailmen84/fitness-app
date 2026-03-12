@@ -18,13 +18,11 @@ class ApiException implements Exception {
 class AppApiClient {
   const AppApiClient({
     required this.baseUrl,
-    this.debugUserEmail,
-    this.debugUserName,
+    this.accessToken,
   });
 
   final String baseUrl;
-  final String? debugUserEmail;
-  final String? debugUserName;
+  final String? accessToken;
 
   Uri _buildUri(String path, [Map<String, String>? queryParameters]) {
     final baseUri = Uri.parse(baseUrl);
@@ -48,11 +46,8 @@ class AppApiClient {
     if (hasJsonBody) {
       headers['Content-Type'] = 'application/json';
     }
-    if (debugUserEmail != null && debugUserEmail!.trim().isNotEmpty) {
-      headers['X-Debug-User-Email'] = debugUserEmail!.trim();
-    }
-    if (debugUserName != null && debugUserName!.trim().isNotEmpty) {
-      headers['X-Debug-User-Name'] = debugUserName!.trim();
+    if (accessToken != null && accessToken!.trim().isNotEmpty) {
+      headers['Authorization'] = 'Bearer ${accessToken!.trim()}';
     }
     return headers;
   }

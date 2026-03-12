@@ -62,13 +62,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutePaths.welcome,
     redirect: (context, state) {
       final location = state.matchedLocation;
-      final isAuthenticated = authSession.isAuthenticated;
-      final hasCompletedOnboarding = authSession.hasCompletedOnboarding;
       final isAuthLocation = _authLocations.contains(location);
       final isOnboardingLocation = _onboardingLocations.contains(location);
       final isProtectedLocation = _protectedPrefixes.any(
         (prefix) => _matchesPrefix(location, prefix),
       );
+      final isWelcomeLocation = location == AppRoutePaths.welcome;
+
+      if (authSession.isHydrating) {
+        if (isProtectedLocation || isOnboardingLocation) {
+          return AppRoutePaths.welcome;
+        }
+        return null;
+      }
+
+      final isAuthenticated = authSession.isAuthenticated;
+      final hasCompletedOnboarding = authSession.hasCompletedOnboarding;
 
       if (!isAuthenticated && isProtectedLocation) {
         return AppRoutePaths.login;
@@ -77,12 +86,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return AppRoutePaths.signup;
       }
       if (isAuthenticated && !hasCompletedOnboarding) {
-        if (isProtectedLocation || isAuthLocation) {
+        if (isWelcomeLocation || isProtectedLocation || isAuthLocation) {
           return AppRoutePaths.onboardingGoal;
         }
       }
       if (isAuthenticated && hasCompletedOnboarding) {
-        if (isAuthLocation || isOnboardingLocation) {
+        if (isWelcomeLocation || isAuthLocation || isOnboardingLocation) {
           return AppRoutePaths.today;
         }
       }
@@ -236,3 +245,4 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+

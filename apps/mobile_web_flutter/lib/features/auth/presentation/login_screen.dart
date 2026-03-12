@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/app_api_client.dart';
 import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/validation/form_validators.dart';
-import '../application/auth_session.dart';
 import '../../onboarding/application/onboarding_controller.dart';
+import '../application/auth_session.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+
+  bool _isSubmitting = false;
+  String? _submissionError;
 
   @override
   void initState() {
@@ -35,23 +39,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final email = _emailController.text.trim();
-    ref.read(authSessionProvider.notifier).previewLogin(email: email);
-    final session = ref.read(authSessionProvider);
-    ref.read(onboardingControllerProvider.notifier).loadReturningMemberPreview(
-          email: session.email ?? email,
-          displayName: session.displayName,
-        );
+    setState(() {
+      _isSubmitting = true;
+      _submissionError = null;
+    });
 
-    if (!mounted) {
-      return;
+    try {
+      final session = await ref.read(authSessionProvider.notifier).login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+      if (session.needsOnboarding) {
+        ref.read(onboardingControllerProvider.notifier).seedFromSignup(
+              email: session.email ?? _emailController.text.trim(),
+              displayName: session.displayName ?? 'User',
+            );
+      } else {
+        ref.read(onboardingControllerProvider.notifier).seedFromAuthenticatedSession(
+              email: session.email ?? _emailController.text.trim(),
+              displayName: session.displayName,
+            );
+      }
+
+      if (!mounted) {
+        return;
+      }
+      context.go(AppRoutePaths.welcome);
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError = 'Could not log in right now. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
-    context.go(AppRoutePaths.today);
   }
 
   @override
@@ -77,7 +116,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'This is a preview login flow. It validates form input and unlocks the shell without calling a real auth provider yet.',
+                    'Sign in with the account you created to reopen your personal dashboard, logs, and settings.',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],
@@ -108,33 +147,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       validator: FormValidators.password,
                       onFieldSubmitted: (_) => _submit(),
                     ),
+                    if (_submissionError != null) ...[
+                      SizedBox(height: tokens.sectionSpacing),
+                      AppErrorBlock(
+                        title: 'Login failed',
+                        message: _submissionError!,
+                      ),
+                    ],
+                    if (_isSubmitting) ...[
+                      SizedBox(height: tokens.sectionSpacing),
+                      const AppLoadingBlock(
+                        title: 'Signing in',
+                        message:
+                            'Checking your credentials and restoring your account session.',
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     AppPrimaryButton(
                       label: 'Continue',
                       expand: true,
-                      onPressed: _submit,
+                      onPressed: _isSubmitting ? null : _submit,
                     ),
                     const SizedBox(height: 12),
                     AppSecondaryButton(
                       label: 'Create account',
                       expand: true,
-                      onPressed: () => context.go(AppRoutePaths.signup),
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => context.go(AppRoutePaths.signup),
                     ),
                     const SizedBox(height: 12),
                     AppSecondaryButton(
                       label: 'Back to welcome',
                       expand: true,
-                      onPressed: () => context.go(AppRoutePaths.welcome),
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => context.go(AppRoutePaths.welcome),
                     ),
                   ],
                 ),
               ),
-            ),
-            SizedBox(height: tokens.sectionSpacing),
-            const AppEmptyStateBlock(
-              title: 'No backend auth yet',
-              message:
-                  'Passwords stay local to the preview form in this milestone. Real session handling and token exchange come later.',
             ),
           ],
         ),
@@ -142,3 +194,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+

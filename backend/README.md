@@ -9,7 +9,7 @@ FastAPI backend for `fitness-app`.
 - PostgreSQL persistence via SQLAlchemy
 - Alembic migrations
 - thin contracts for users, goals, preferences, foods, meals, nutrition, and progress
-- temporary dev-only current-user resolution for local development
+- real signup, login, password hashing, bearer token issuing, and bearer current-user resolution
 
 ## Prerequisites
 
@@ -72,6 +72,9 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 
 - `GET /api/v1/health`
 - `GET /api/v1/system/foundation`
+- `POST /api/v1/auth/signup`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/session`
 - `GET /api/v1/users/me`
 - `PATCH /api/v1/users/me`
 - `GET /api/v1/goals/current`
@@ -92,14 +95,13 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 - `GET /api/v1/progress/measurements`
 - `POST /api/v1/progress/measurements`
 
-## Dev-Only Auth Limitation
+## Current Auth Notes
 
-Current auth is intentionally temporary:
+The working MVP backend now uses real auth for normal app use:
 
-- there are no login or signup API endpoints yet
-- there is no token issuing yet
-- the backend resolves the current user from `X-Debug-User-Email` and `X-Debug-User-Name` headers or the dev defaults in the backend settings
-- this is suitable only for local development and repository scaffolding
+- signup and login issue bearer access tokens
+- authenticated endpoints resolve the current user from the bearer token
+- refresh tokens, password reset, email verification, and social auth are still intentionally deferred
 
 ## Notes
 
@@ -109,4 +111,6 @@ Current auth is intentionally temporary:
 - `GET /api/v1/meals?date=...` always returns four meal sections for the selected date, even when they are empty.
 - Food search uses a small development seed dataset on first use so search is testable before admin tooling exists.
 - Meal entry writes persist snapshot calories, protein, carbs, and fat onto the entry for stable history.
-- Auth, token issuing, barcode scanning, recipes, and advanced nutrition or progress logic are intentionally deferred.
+- Social auth, password reset, barcode scanning, recipes, and advanced nutrition or progress logic are intentionally deferred.
+
+

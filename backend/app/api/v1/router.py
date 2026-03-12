@@ -1,5 +1,6 @@
-﻿from fastapi import APIRouter
+from fastapi import APIRouter
 
+from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.foods import router as foods_router
 from app.api.v1.endpoints.goals import router as goals_router
 from app.api.v1.endpoints.health import router as health_router
@@ -13,6 +14,7 @@ from app.api.v1.endpoints.users import router as users_router
 api_router = APIRouter()
 api_router.include_router(health_router, prefix='/health', tags=['health'])
 api_router.include_router(system_router, prefix='/system', tags=['system'])
+api_router.include_router(auth_router, prefix='/auth', tags=['auth'])
 api_router.include_router(users_router, prefix='/users', tags=['users'])
 api_router.include_router(goals_router, prefix='/goals', tags=['goals'])
 api_router.include_router(preferences_router, prefix='/preferences', tags=['preferences'])

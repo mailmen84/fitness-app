@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/environment.dart';
 import '../../../core/network/app_api_client.dart';
@@ -8,7 +8,6 @@ final appApiClientProvider = Provider<AppApiClient>((ref) {
   final authSession = ref.watch(authSessionProvider);
   return AppApiClient(
     baseUrl: Environment.defaultApiBaseUrl,
-    debugUserEmail: authSession.email,
-    debugUserName: authSession.displayName,
+    accessToken: authSession.accessToken,
   );
 });

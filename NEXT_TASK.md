@@ -2,15 +2,15 @@
 
 This file intentionally describes only the active phase.
 
-Current phase: stability and verification pass.
+Current phase: real authentication.
 
 ## Goal
 
-Improve the existing polished MVP so it behaves more predictably, initializes more safely, and carries stronger verification confidence without introducing major new product features.
+Replace the old dev-only auth path with real multi-user authentication while preserving the current working MVP structure across Today, Add, Nutrition, Progress, and More.
 
 ## Current Baseline
 
-The app now has a polished working MVP runtime across:
+The app now has a stable working MVP runtime across:
 
 - Today
 - Add
@@ -18,33 +18,11 @@ The app now has a polished working MVP runtime across:
 - Progress
 - More/settings
 
-## Frontend Stability Requirements
+The next major gap being closed in this phase is real authentication.
 
-Work inside:
+Core real-auth implementation is now in place. Any remaining work in this phase should stay focused on auth cleanup, verification, and integration confidence rather than new product scope.
 
-- `apps/mobile_web_flutter`
-
-Requirements:
-
-- inspect form screens that still seed controller values during the first rendered data pass
-- replace fragile initialization patterns with safer explicit initialization where appropriate
-- keep Riverpod flows lifecycle-safe
-- do not rewrite architecture
-- do not add new product features
-
-## Frontend Verification Requirements
-
-Work inside:
-
-- `apps/mobile_web_flutter`
-
-Requirements:
-
-- review the current Flutter widget test coverage
-- improve low-risk widget or screen-level verification where useful
-- keep tests practical and focused on currently working MVP behavior
-
-## Backend Verification Requirements
+## Backend Authentication Requirements
 
 Work inside:
 
@@ -52,50 +30,65 @@ Work inside:
 
 Requirements:
 
-- review backend test coverage and low-risk consistency edges
-- improve thin endpoint consistency or focused contract tests where useful
+- implement real signup and login foundations
+- use secure password hashing
+- issue bearer access tokens appropriate for the current architecture
+- resolve the current user from the authenticated token instead of the old debug-header path
 - keep endpoints thin
-- do not add new business modules
-- do not introduce production auth
+- keep business logic in services
+- keep persistence logic in repositories
 
-## Wording Cleanup Requirements
+## Frontend Authentication Requirements
+
+Work inside:
+
+- `apps/mobile_web_flutter`
 
 Requirements:
 
-- remove obvious `foundation`, `scaffold`, or `preview` wording where it is no longer accurate for the current MVP
-- keep copy practical and minimal
-- preserve intentionally accurate dev-only auth wording until real auth exists
+- connect Login and Signup screens to real backend auth
+- persist the authenticated session for the current app platforms
+- update route guards to use real auth state
+- ensure authenticated users reach the app shell and logged-out users are redirected correctly
+- keep UI changes minimal and aligned with the existing screens
+
+## Current-User Integration Requirements
+
+Requirements:
+
+- update authenticated endpoints so they resolve the actual signed-in user
+- preserve current module behavior for Today, Add, Nutrition, Progress, and More
+- keep user-specific data scoped correctly under the authenticated account
+- avoid broad rewrites of working feature modules
 
 ## Documentation Requirements
 
 Requirements:
 
-- update `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` so they reflect the stability and verification pass
-- make it clear that the MVP runtime is working and polished
-- note that the next likely milestone after this phase is real authentication or deployment/demo readiness
-- keep setup notes practical and concise
-- preserve the repository root guardrails and anti-drift rules
+- update `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` so they reflect the real-authentication milestone
+- make it clear that the earlier dev-only auth path is being replaced
+- note that the next likely milestone after auth is auth stabilization plus demo/deployment readiness
+- keep the repository root guardrails and anti-drift rules intact
 
 ## Out Of Scope
 
 Do not add these as part of this phase:
 
-- production auth
-- backend login or signup APIs
-- barcode scanning
-- recipes
+- social auth
+- password reset flows unless a truly minimal blocker appears
+- production deployment changes
 - new product modules
 - broad architecture rewrites
-- unrelated visual redesign work
 - a new repository root folder
 
 ## Definition Of Done
 
 This phase is done when all of the following are true:
 
-- fragile first-render form seeding has been replaced where needed in the working MVP flows
-- focused frontend and backend verification coverage is stronger than before
-- obvious outdated MVP wording has been cleaned up where appropriate
-- the root guidance files reflect the stability and verification pass
-- the project is left in a more predictable and verifiable MVP state
+- backend signup, login, password hashing, token issuance, and bearer current-user resolution are in place
+- frontend login, signup, session restore, and route guarding use the real auth path
+- authenticated endpoints continue working for Today, Add, Nutrition, Progress, and More under the signed-in user
+- the root guidance files reflect the real-authentication milestone
+- the project is left ready for an auth-stabilization and demo/deployment-readiness pass next
 - no new root folder was created
+

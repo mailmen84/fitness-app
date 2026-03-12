@@ -17,8 +17,10 @@ class Settings(BaseSettings):
     )
     alembic_database_url: str | None = None
     database_echo: bool = False
-    dev_current_user_email: str = "dev-user@fitness-app.local"
-    dev_current_user_display_name: str = "Development User"
+    auth_secret_key: str = (
+        "development-auth-secret-change-me-before-production-use"
+    )
+    auth_access_token_expire_seconds: int = 60 * 60 * 24 * 7
     cors_allowed_origins: list[str] = Field(
         default_factory=lambda: [
             "http://localhost",

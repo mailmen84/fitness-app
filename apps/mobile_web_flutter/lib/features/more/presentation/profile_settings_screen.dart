@@ -168,7 +168,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Update the lightweight profile fields that drive the More home summary and the dev-only account headers.',
+                  'Update the lightweight profile fields that drive the More home summary and the authenticated account profile.',
                   style: theme.textTheme.bodyLarge,
                 ),
                 SizedBox(height: tokens.sectionSpacing),
@@ -340,3 +340,4 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     );
   }
 }
+

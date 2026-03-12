@@ -1,4 +1,4 @@
-﻿name: mobile_web_flutter
+name: mobile_web_flutter
 description: Cross-platform Flutter client for the fitness-app monorepo.
 publish_to: "none"
 version: 0.1.0+1
@@ -21,3 +21,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+

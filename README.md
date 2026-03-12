@@ -1,6 +1,6 @@
 # fitness-app
 
-`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now includes the shared app platform, dev-only auth/onboarding flows, Today meal tracking, food search and meal logging, Nutrition overview, Progress tracking, and a real More/settings area.
+`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now includes real signup/login auth, the existing onboarding flow, Today meal tracking, food search and meal logging, Nutrition overview, Progress tracking, and a real More/settings area.
 
 ## Non-Negotiable Repository Rule
 
@@ -71,9 +71,8 @@ The following milestones are already present in the repository state:
 
 4. Authentication and onboarding foundation
 - frontend welcome, login, signup, and onboarding flow scaffolds
-- frontend Riverpod auth and onboarding state
-- backend `/users/me`, `/goals/current`, and `/preferences` foundations
-- temporary dev-only current-user resolution for backend work
+- frontend Riverpod auth and onboarding state foundations
+- backend `/users/me`, `/goals/current`, and `/preferences` foundations that later fed the real auth flow
 
 5. Today dashboard vertical slice
 - backend `GET /api/v1/meals?date=YYYY-MM-DD`
@@ -104,18 +103,23 @@ The following milestones are already present in the repository state:
 - frontend reuse of `/users/me`, `/goals/current`, and `/preferences` contracts through a dedicated More repository/controller layer
 - thin account-settings API contract coverage scaffolding on the backend side
 
+10. Real authentication
+- backend signup, login, password hashing, bearer token issuing, and authenticated current-user resolution
+- frontend login, signup, session restore, authenticated routing, and sign-out over the backend auth flow
+- existing Today, Add, Nutrition, Progress, and More modules now scoped through the authenticated account
+
 ## Current Milestone
 
-Current milestone: stability and verification pass.
+Current milestone: real authentication.
 
-This phase assumes the polished MVP runtime is now working and focuses on initialization safety, predictability, verification confidence, and low-risk cleanup without introducing major new features.
+This phase assumes the MVP runtime is stable and has now replaced the old dev-only auth path with real multi-user authentication while preserving the working MVP modules.
 
 ## Current Product Scope
 
 In scope right now:
 
 - working MVP runtime across Today, Add, Nutrition, Progress, and More/settings on a real local pass
-- preview auth and onboarding flow scaffolding
+- real signup/login auth with persisted bearer session restore and the existing onboarding flow
 - Today dashboard day selection, summary cards, and stable backend meal loading
 - food search from a development seed dataset
 - food detail viewing
@@ -131,7 +135,7 @@ In scope right now:
 
 Still not product-complete:
 
-- real authentication and token issuing
+- auth hardening beyond the current bearer access-token flow
 - broader regression coverage across browsers, devices, and automated checks
 - advanced nutrition analytics, charts, micronutrient drill-downs, recipes, or barcode flows
 - advanced Progress analytics, edit/delete flows, photos, or coaching logic
@@ -141,9 +145,9 @@ Still not product-complete:
 
 Do not assume these are implemented:
 
-- backend login or signup endpoints
-- token issuing or refresh flows
-- password hashing flow exposed to clients
+- refresh-token rotation or server-side session revocation
+- password reset or email verification flows
+- social auth
 - barcode scanning
 - recipes or multi-food saved meals
 - advanced unit conversion
@@ -169,7 +173,7 @@ Do not assume these are implemented:
 - Keep persistence logic in repositories
 - Keep domain models and schemas grouped by aggregate in `backend/app/domain/`
 - Keep the API versioned under `backend/app/api/v1/`
-- Preserve the current dev-only auth placeholder until real auth is explicitly requested
+- Keep authenticated endpoints on the bearer-token current-user flow now that real auth is active
 - Reuse existing users, goals, preferences, meals, nutrition, and progress contracts before inventing new backend surfaces
 - Avoid embedding business workflows directly in route handlers
 
@@ -290,14 +294,14 @@ Notes:
 - `pubspec.lock` will be generated after the first successful `flutter pub get`.
 - Android emulators or physical devices may need a different backend host value later, for example `http://10.0.2.2:8000`.
 
-### Current dev-only auth limitation
+### Current auth note
 
-The current auth path is intentionally temporary:
+The working MVP now uses real auth for normal app use:
 
-- frontend auth is preview/local state only
-- backend current-user resolution uses `X-Debug-User-Email` and `X-Debug-User-Name` headers or dev defaults from the backend config
-- this is suitable only for local development and repository scaffolding
-- production auth is not implemented yet
+- frontend login and signup call the backend auth endpoints
+- the app restores a saved bearer session on supported platforms
+- backend current-user resolution now uses authenticated bearer tokens
+- refresh tokens, password reset, and social auth are still intentionally out of scope
 
 ### Current environment caveat
 
@@ -305,11 +309,13 @@ In the current Codex environment used to shape this repo, Flutter and Python too
 
 ## Next Step After The Current Milestone
 
-After the stability and verification pass, the next likely milestone should be either real authentication or deployment/demo readiness from the now-cleaner MVP baseline.
+After the real-auth milestone, the next likely step should be auth stabilization plus demo/deployment readiness from the now-authenticated MVP baseline.
 
 ## Final Guardrail
 
 Never create a new root folder for this project. All repository work must remain inside `C:\New folder\fitness-app`.
+
+
 
 
 

@@ -160,7 +160,7 @@ void main() {
     expect(find.text('Cut to 82 kg'), findsOneWidget);
     expect(find.textContaining('Europe/Dublin'), findsOneWidget);
     expect(find.text('PED placeholder'), findsOneWidget);
-    expect(find.text('Sign out (preview)'), findsOneWidget);
+    expect(find.text('Sign out'), findsOneWidget);
   });
 
   testWidgets('profile settings seed the loaded profile values without exceptions', (
@@ -197,3 +197,4 @@ void main() {
     expect(_textFormField(tester, 'Daily protein target').controller?.text, '165');
   });
 }
+

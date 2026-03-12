@@ -1,44 +1,58 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/auth_models.dart';
+import '../infrastructure/auth_repository.dart';
+
+const Object _unset = Object();
+
 class AuthSessionState {
   const AuthSessionState({
+    this.accessToken,
     this.email,
     this.displayName,
     this.isAuthenticated = false,
     this.hasCompletedOnboarding = false,
+    this.isHydrating = true,
   });
 
+  final String? accessToken;
   final String? email;
   final String? displayName;
   final bool isAuthenticated;
   final bool hasCompletedOnboarding;
+  final bool isHydrating;
 
   bool get needsOnboarding => isAuthenticated && !hasCompletedOnboarding;
 
   AuthSessionState copyWith({
-    String? email,
-    String? displayName,
+    Object? accessToken = _unset,
+    Object? email = _unset,
+    Object? displayName = _unset,
     bool? isAuthenticated,
     bool? hasCompletedOnboarding,
+    bool? isHydrating,
   }) {
     return AuthSessionState(
-      email: email ?? this.email,
-      displayName: displayName ?? this.displayName,
+      accessToken:
+          accessToken == _unset ? this.accessToken : accessToken as String?,
+      email: email == _unset ? this.email : email as String?,
+      displayName:
+          displayName == _unset ? this.displayName : displayName as String?,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
+      isHydrating: isHydrating ?? this.isHydrating,
     );
   }
 }
 
 class AuthSessionController extends Notifier<AuthSessionState> {
-  @override
-  AuthSessionState build() => const AuthSessionState();
+  late final AuthRepository _repository;
 
   String _displayNameFromEmail(String email) {
     final localPart = email.split('@').first.trim();
     if (localPart.isEmpty) {
-      return 'Preview User';
+      return 'User';
     }
 
     return localPart
@@ -51,28 +65,98 @@ class AuthSessionController extends Notifier<AuthSessionState> {
         .join(' ');
   }
 
-  void previewLogin({
-    required String email,
-    bool hasCompletedOnboarding = true,
+  @override
+  AuthSessionState build() {
+    _repository = ref.watch(authRepositoryProvider);
+    Future<void>.microtask(_hydrateSession);
+    return const AuthSessionState();
+  }
+
+  AuthSessionState _stateFromSession(
+    AuthSessionData session, {
+    required String accessToken,
   }) {
-    final trimmedEmail = email.trim();
-    state = AuthSessionState(
-      email: trimmedEmail,
-      displayName: state.displayName ?? _displayNameFromEmail(trimmedEmail),
+    return AuthSessionState(
+      accessToken: accessToken,
+      email: session.email,
+      displayName: session.resolvedDisplayName,
       isAuthenticated: true,
-      hasCompletedOnboarding: hasCompletedOnboarding,
+      hasCompletedOnboarding: session.onboardingCompleted,
+      isHydrating: false,
     );
   }
 
-  void previewSignup({
+  Future<void> _hydrateSession() async {
+    final storedAccessToken = await _repository.readStoredAccessToken();
+    if (storedAccessToken == null || storedAccessToken.trim().isEmpty) {
+      state = const AuthSessionState(isHydrating: false);
+      return;
+    }
+
+    try {
+      final session = await _repository.restoreSession(storedAccessToken);
+      state = _stateFromSession(
+        session,
+        accessToken: storedAccessToken,
+      );
+    } catch (_) {
+      await _repository.clearStoredAccessToken();
+      state = const AuthSessionState(isHydrating: false);
+    }
+  }
+
+  Future<AuthSessionState> login({
     required String email,
+    required String password,
+  }) async {
+    final response = await _repository.login(
+      email: email,
+      password: password,
+    );
+    await _repository.persistAccessToken(response.accessToken);
+    final nextState = _stateFromSession(
+      response.session,
+      accessToken: response.accessToken,
+    );
+    state = nextState;
+    return nextState;
+  }
+
+  Future<AuthSessionState> signup({
     required String displayName,
-  }) {
-    state = AuthSessionState(
-      email: email.trim(),
-      displayName: displayName.trim(),
+    required String email,
+    required String password,
+  }) async {
+    final response = await _repository.signup(
+      displayName: displayName,
+      email: email,
+      password: password,
+    );
+    await _repository.persistAccessToken(response.accessToken);
+    final nextState = _stateFromSession(
+      response.session,
+      accessToken: response.accessToken,
+    );
+    state = nextState;
+    return nextState;
+  }
+
+  Future<void> completeOnboarding({
+    int? dailyCalorieTarget,
+  }) async {
+    final accessToken = state.accessToken;
+    if (accessToken == null || accessToken.trim().isEmpty) {
+      return;
+    }
+
+    await _repository.completeOnboarding(
+      accessToken: accessToken,
+      dailyCalorieTarget: dailyCalorieTarget,
+    );
+    state = state.copyWith(
+      hasCompletedOnboarding: true,
       isAuthenticated: true,
-      hasCompletedOnboarding: false,
+      isHydrating: false,
     );
   }
 
@@ -94,19 +178,12 @@ class AuthSessionController extends Notifier<AuthSessionState> {
     );
   }
 
-  void markOnboardingComplete() {
-    state = state.copyWith(
-      isAuthenticated: true,
-      hasCompletedOnboarding: true,
-    );
-  }
-
-  void signOut() {
-    state = const AuthSessionState();
+  Future<void> signOut() async {
+    await _repository.clearStoredAccessToken();
+    state = const AuthSessionState(isHydrating: false);
   }
 }
 
-// Preview-only local session until real backend auth is wired.
 final authSessionProvider =
     NotifierProvider<AuthSessionController, AuthSessionState>(
   AuthSessionController.new,

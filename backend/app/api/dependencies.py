@@ -1,8 +1,10 @@
-﻿from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator
 
-from fastapi import Depends, Header
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.services.auth_service import AuthService
 from app.application.services.foods_service import FoodsService
 from app.application.services.goals_service import GoalsService
 from app.application.services.health_service import HealthService
@@ -23,6 +25,8 @@ from app.infrastructure.persistence.repositories.preferences_repository import (
 )
 from app.infrastructure.persistence.repositories.progress_repository import ProgressRepository
 from app.infrastructure.persistence.repositories.users_repository import UsersRepository
+
+_bearer_scheme = HTTPBearer(auto_error=False)
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
@@ -48,19 +52,43 @@ def get_users_service(
     return UsersService(users_repository=users_repository)
 
 
-async def get_current_user(
-    users_service: UsersService = Depends(get_users_service),
+def get_preferences_repository(
+    session: AsyncSession = Depends(get_session),
+) -> PreferencesRepository:
+    return PreferencesRepository(session=session)
+
+
+def get_auth_service(
+    users_repository: UsersRepository = Depends(get_users_repository),
+    preferences_repository: PreferencesRepository = Depends(get_preferences_repository),
     settings: Settings = Depends(get_settings),
-    x_debug_user_email: str | None = Header(default=None, alias='X-Debug-User-Email'),
-    x_debug_user_name: str | None = Header(default=None, alias='X-Debug-User-Name'),
-) -> User:
-    # Dev-only placeholder until real token-based auth is added.
-    email = x_debug_user_email or settings.dev_current_user_email
-    display_name = x_debug_user_name or settings.dev_current_user_display_name
-    return await users_service.get_or_create_development_user(
-        email=email,
-        display_name=display_name,
+) -> AuthService:
+    return AuthService(
+        users_repository=users_repository,
+        preferences_repository=preferences_repository,
+        settings=settings,
     )
+
+
+def _auth_http_exception(detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    auth_service: AuthService = Depends(get_auth_service),
+) -> User:
+    if credentials is None or credentials.scheme.lower() != 'bearer':
+        raise _auth_http_exception('Authentication is required.')
+
+    try:
+        return await auth_service.get_authenticated_user(credentials.credentials)
+    except PermissionError as error:
+        raise _auth_http_exception('Access token is invalid or expired.') from error
 
 
 def get_goals_repository(session: AsyncSession = Depends(get_session)) -> GoalsRepository:
@@ -71,12 +99,6 @@ def get_goals_service(
     goals_repository: GoalsRepository = Depends(get_goals_repository),
 ) -> GoalsService:
     return GoalsService(goals_repository=goals_repository)
-
-
-def get_preferences_repository(
-    session: AsyncSession = Depends(get_session),
-) -> PreferencesRepository:
-    return PreferencesRepository(session=session)
 
 
 def get_preferences_service(

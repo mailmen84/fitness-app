@@ -7,6 +7,7 @@ import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/application/auth_session.dart';
+import '../../onboarding/application/onboarding_controller.dart';
 import '../application/current_goal_controller.dart';
 import '../application/current_user_controller.dart';
 import '../application/preferences_controller.dart';
@@ -120,16 +121,19 @@ class MoreScreen extends ConsumerWidget {
                       SelectableText(Environment.defaultApiBaseUrl),
                       const SizedBox(height: 16),
                       Text(
-                        'Auth in this repository is still dev-only. Sign out only clears local preview state until real auth is added.',
+                        'This device currently has an authenticated session. Signing out clears the saved session token and returns to the public routes.',
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 20),
                       AppSecondaryButton(
-                        label: 'Sign out (preview)',
+                        label: 'Sign out',
                         expand: true,
-                        onPressed: () {
-                          ref.read(authSessionProvider.notifier).signOut();
-                          context.go(AppRoutePaths.welcome);
+                        onPressed: () async {
+                          await ref.read(authSessionProvider.notifier).signOut();
+                          ref.read(onboardingControllerProvider.notifier).reset();
+                          if (context.mounted) {
+                            context.go(AppRoutePaths.welcome);
+                          }
                         },
                       ),
                     ],
@@ -625,3 +629,5 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
+
+

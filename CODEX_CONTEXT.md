@@ -78,9 +78,8 @@ These milestones are already present in the repository state:
 
 4. Authentication and onboarding foundation
 - frontend welcome, login, signup, and onboarding flow scaffolds
-- frontend local auth and onboarding state
-- backend `/users/me`, `/goals/current`, and `/preferences` foundations
-- dev-only current-user placeholder on backend
+- frontend auth and onboarding state foundations
+- backend `/users/me`, `/goals/current`, and `/preferences` foundations that later fed the real auth path
 
 5. Today dashboard vertical slice
 - backend day meals contract
@@ -111,16 +110,22 @@ These milestones are already present in the repository state:
 - frontend reuse of `/users/me`, `/goals/current`, and `/preferences` through the More repository/controller layer
 - account/settings test scaffolding added around the thin backend contracts
 
+10. Real authentication
+- backend signup, login, password hashing, bearer token issuing, and current-session restore
+- backend authenticated current-user resolution over bearer access tokens instead of the old debug-header path
+- frontend login, signup, persisted session restore, authenticated route guarding, and sign-out
+- current MVP modules now operate under the authenticated user account
+
 ## Current Milestone
 
-Current milestone: stability and verification pass.
+Current milestone: real authentication.
 
 Status:
 
 - the core MVP structure is now present across Today, meal logging, Nutrition, Progress, and More/settings
 - a working MVP runtime has now been achieved on a real local pass across Today, Add, Nutrition, Progress, and More/settings
 - the current job is not to add a new product module
-- the current job is to improve initialization safety, predictability, verification confidence, and low-risk maintainability from that baseline
+- the current job is to finish and verify the real multi-user auth path while preserving the working MVP modules
 
 ## What Already Exists
 
@@ -131,7 +136,7 @@ Status:
 - Today screen backed by the backend day meals contract
 - add hub, quick add, food search, food detail, and meal detail screens
 - Riverpod controllers for Today loading, food search, meal logging flow, Nutrition overview loading, Progress loading/mutations, and More/settings loading/mutations
-- shared API client using the current environment base URL and dev-only auth headers
+- shared API client using the current environment base URL and bearer access token headers
 - navigation from Today meal cards and quick actions into the add flow
 - Today refresh after meal entry create, update, and delete
 - Nutrition overview screen with day, week, and month range support, summary cards, category rows, and top contributors
@@ -144,7 +149,7 @@ Status:
 ### Backend
 
 - FastAPI app with versioned routes
-- current-user dev placeholder via `X-Debug-User-Email` and `X-Debug-User-Name`
+- auth endpoints for signup, login, and current-session restore
 - users, goals, and preferences foundation endpoints
 - foods endpoints:
   - `GET /api/v1/foods/search?q=`
@@ -170,14 +175,14 @@ Status:
 
 ## Current Functional Focus
 
-The active focus is the stability and verification pass.
+The active focus is the real-authentication milestone.
 
 That means the next work should:
 
-- replace fragile form initialization with explicit lifecycle-safe setup where needed
-- keep save and refresh behavior predictable without introducing lifecycle regressions
-- improve focused frontend and backend verification coverage where useful
-- keep documentation practical and aligned with the polished working MVP
+- keep signup, login, session restore, and sign-out behavior predictable
+- keep authenticated endpoint usage scoped to the signed-in user across working MVP modules
+- improve focused frontend and backend auth verification where useful
+- keep documentation practical and aligned with the now-authenticated MVP
 
 ## Backend Meal Rules
 
@@ -216,9 +221,9 @@ These rules are currently expected and should not drift without explicit instruc
 
 Do not add these on your own:
 
-- production auth or token issuing
-- backend login or signup APIs
-- secure credential flows
+- refresh-token rotation or server-side session revocation
+- password reset or email verification flows
+- social auth
 - advanced nutrition analytics, micronutrient deep dives, or chart-heavy nutrition surfaces
 - advanced Progress analytics, photo logging, or coaching systems
 - barcode scanning
@@ -229,17 +234,20 @@ Do not add these on your own:
 - unrelated workout, coaching, social, or subscription features
 - a new repository root folder
 
-## Temporary Auth Rule
+## Current Auth Rule
 
-Current auth is dev-only.
+The working app now uses real auth for normal use.
 
 Meaning:
 
-- frontend uses preview or local auth state for flow gating
-- backend current-user resolution uses debug headers or configured dev defaults
-- this is a temporary implementation and must not be treated as production auth
+- frontend auth state is driven by backend signup, login, and current-session restore
+- frontend route guarding depends on the authenticated bearer session
+- backend current-user resolution uses bearer access tokens instead of debug headers
+- auth hardening beyond the current access-token flow is still future work
 
 ## Expected Next Step After The Current Milestone
 
-After the stability and verification pass, the next likely milestone should be real authentication or deployment/demo readiness from the stronger MVP baseline.
+After the real-authentication milestone, the next likely milestone should be auth stabilization and demo/deployment readiness from the stronger MVP baseline.
+
+
 

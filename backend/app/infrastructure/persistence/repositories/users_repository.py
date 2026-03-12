@@ -9,6 +9,10 @@ from app.domain.users.models import User, UserProfile
 from app.infrastructure.persistence.repositories.base_repository import BaseRepository
 
 
+def _normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
 class UsersRepository(BaseRepository):
     async def get_user(self, user_id: UUID) -> User | None:
         return await self.session.get(User, user_id)
@@ -25,7 +29,7 @@ class UsersRepository(BaseRepository):
         result = await self.session.execute(
             select(User)
             .options(selectinload(User.profile))
-            .where(User.email == email)
+            .where(User.email == _normalize_email(email))
         )
         return result.scalar_one_or_none()
 
@@ -43,7 +47,7 @@ class UsersRepository(BaseRepository):
         is_active: bool = True,
     ) -> User:
         user = User(
-            email=email,
+            email=_normalize_email(email),
             password_hash=password_hash,
             is_active=is_active,
         )

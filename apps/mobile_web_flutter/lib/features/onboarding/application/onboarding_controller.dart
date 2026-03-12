@@ -174,7 +174,7 @@ class OnboardingController extends Notifier<OnboardingDraft> {
     );
   }
 
-  void loadReturningMemberPreview({
+  void seedFromAuthenticatedSession({
     required String email,
     String? displayName,
   }) {

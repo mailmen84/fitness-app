@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/app_api_client.dart';
 import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/validation/form_validators.dart';
-import '../application/auth_session.dart';
 import '../../onboarding/application/onboarding_controller.dart';
+import '../application/auth_session.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -22,6 +23,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
+
+  bool _isSubmitting = false;
+  String? _submissionError;
 
   @override
   void initState() {
@@ -41,27 +45,55 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    setState(() {
+      _isSubmitting = true;
+      _submissionError = null;
+    });
+
     final displayName = _displayNameController.text.trim();
     final email = _emailController.text.trim();
 
-    ref.read(authSessionProvider.notifier).previewSignup(
-          email: email,
-          displayName: displayName,
-        );
-    ref.read(onboardingControllerProvider.notifier).seedFromSignup(
-          email: email,
-          displayName: displayName,
-        );
+    try {
+      await ref.read(authSessionProvider.notifier).signup(
+            displayName: displayName,
+            email: email,
+            password: _passwordController.text,
+          );
+      ref.read(onboardingControllerProvider.notifier).seedFromSignup(
+            email: email,
+            displayName: displayName,
+          );
 
-    if (!mounted) {
-      return;
+      if (!mounted) {
+        return;
+      }
+      context.go(AppRoutePaths.welcome);
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError = error.message;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _submissionError = 'Could not create your account right now. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
-    context.go(AppRoutePaths.onboardingGoal);
   }
 
   @override
@@ -80,14 +112,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Create your preview account',
+                    'Create your account',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'This foundation captures a name, email, and password shape, then moves straight into onboarding without a real backend signup call yet.',
+                    'Create a real account to unlock your own data and continue through the existing onboarding flow.',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],
@@ -140,23 +172,42 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       onFieldSubmitted: (_) => _submit(),
                     ),
+                    if (_submissionError != null) ...[
+                      SizedBox(height: tokens.sectionSpacing),
+                      AppErrorBlock(
+                        title: 'Signup failed',
+                        message: _submissionError!,
+                      ),
+                    ],
+                    if (_isSubmitting) ...[
+                      SizedBox(height: tokens.sectionSpacing),
+                      const AppLoadingBlock(
+                        title: 'Creating account',
+                        message:
+                            'Saving your account, starting a secure session, and preparing onboarding.',
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     AppPrimaryButton(
                       label: 'Continue to onboarding',
                       expand: true,
-                      onPressed: _submit,
+                      onPressed: _isSubmitting ? null : _submit,
                     ),
                     const SizedBox(height: 12),
                     AppSecondaryButton(
                       label: 'Already have an account?',
                       expand: true,
-                      onPressed: () => context.go(AppRoutePaths.login),
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => context.go(AppRoutePaths.login),
                     ),
                     const SizedBox(height: 12),
                     AppSecondaryButton(
                       label: 'Back to welcome',
                       expand: true,
-                      onPressed: () => context.go(AppRoutePaths.welcome),
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => context.go(AppRoutePaths.welcome),
                     ),
                   ],
                 ),
@@ -166,7 +217,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             const AppEmptyStateBlock(
               title: 'Onboarding comes next',
               message:
-                  'Goal, stats, activity, and target selections are stored locally for now so the full vertical slice can be built on top later.',
+                  'Goal, stats, activity, and target selections still use the existing MVP onboarding flow after signup completes.',
             ),
           ],
         ),
