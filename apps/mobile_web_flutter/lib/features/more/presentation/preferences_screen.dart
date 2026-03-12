@@ -25,35 +25,66 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   final _dailyCalorieTargetController = TextEditingController();
   final _dailyProteinTargetController = TextEditingController();
 
+  ProviderSubscription<AsyncValue<PreferenceData>>? _preferencesSubscription;
   String _unitSystem = 'metric';
   String _weekStartsOn = 'monday';
   bool _initializedForm = false;
 
   @override
+  void initState() {
+    super.initState();
+    _preferencesSubscription = ref.listenManual<AsyncValue<PreferenceData>>(
+      preferencesControllerProvider,
+      (previous, next) {
+        if (_initializedForm) {
+          return;
+        }
+        next.whenData(
+          (preferences) => _seedForm(
+            preferences,
+            notify: previous != null,
+          ),
+        );
+      },
+      fireImmediately: true,
+    );
+  }
+
+  @override
   void dispose() {
+    _preferencesSubscription?.close();
     _timezoneController.dispose();
     _dailyCalorieTargetController.dispose();
     _dailyProteinTargetController.dispose();
     super.dispose();
   }
 
-  void _seedForm(PreferenceData preferences) {
-    _unitSystem = switch (preferences.unitSystem) {
-      'metric' || 'imperial' => preferences.unitSystem,
-      _ => 'metric',
-    };
-    _weekStartsOn = switch (preferences.weekStartsOn) {
-      'monday' || 'sunday' => preferences.weekStartsOn,
-      _ => 'monday',
-    };
-    _timezoneController.text = preferences.timezone;
-    _dailyCalorieTargetController.text = preferences.dailyCalorieTarget == null
-        ? ''
-        : formatMoreNumber(preferences.dailyCalorieTarget!);
-    _dailyProteinTargetController.text = preferences.dailyProteinTarget == null
-        ? ''
-        : formatMoreNumber(preferences.dailyProteinTarget!);
-    _initializedForm = true;
+  void _seedForm(PreferenceData preferences, {required bool notify}) {
+    void apply() {
+      _unitSystem = switch (preferences.unitSystem) {
+        'metric' || 'imperial' => preferences.unitSystem,
+        _ => 'metric',
+      };
+      _weekStartsOn = switch (preferences.weekStartsOn) {
+        'monday' || 'sunday' => preferences.weekStartsOn,
+        _ => 'monday',
+      };
+      _timezoneController.text = preferences.timezone;
+      _dailyCalorieTargetController.text = preferences.dailyCalorieTarget == null
+          ? ''
+          : formatMoreNumber(preferences.dailyCalorieTarget!);
+      _dailyProteinTargetController.text = preferences.dailyProteinTarget == null
+          ? ''
+          : formatMoreNumber(preferences.dailyProteinTarget!);
+      _initializedForm = true;
+    }
+
+    if (!notify || !mounted) {
+      apply();
+      return;
+    }
+
+    setState(apply);
   }
 
   Future<void> _submit(PreferenceData currentPreferences) async {
@@ -171,10 +202,6 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     bool isSubmitting,
     String? submissionError,
   ) {
-    if (!_initializedForm) {
-      _seedForm(preferences);
-    }
-
     return AppStandardCard(
       child: Form(
         key: _formKey,

@@ -27,6 +27,7 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _quantityController;
   late final TextEditingController _notesController;
+  ProviderSubscription<AsyncValue<FoodDetail>>? _foodDetailSubscription;
   String? _selectedUnit;
   bool _initializedForm = false;
 
@@ -35,13 +36,68 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
     super.initState();
     _quantityController = TextEditingController();
     _notesController = TextEditingController();
+    _listenForFoodDetail(widget.foodId);
+  }
+
+  @override
+  void didUpdateWidget(covariant FoodDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.foodId == widget.foodId) {
+      return;
+    }
+
+    _quantityController.clear();
+    _notesController.clear();
+    _selectedUnit = null;
+    _initializedForm = false;
+    _listenForFoodDetail(widget.foodId);
   }
 
   @override
   void dispose() {
+    _foodDetailSubscription?.close();
     _quantityController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  void _listenForFoodDetail(String foodId) {
+    _foodDetailSubscription?.close();
+    _foodDetailSubscription = ref.listenManual<AsyncValue<FoodDetail>>(
+      foodDetailProvider(foodId),
+      (previous, next) {
+        if (_initializedForm) {
+          return;
+        }
+        next.whenData(
+          (food) => _seedForm(
+            food,
+            notify: previous != null,
+          ),
+        );
+      },
+      fireImmediately: true,
+    );
+  }
+
+  void _seedForm(FoodDetail food, {required bool notify}) {
+    final quantityText = food.defaultServingAmount.truncateToDouble() ==
+            food.defaultServingAmount
+        ? food.defaultServingAmount.toStringAsFixed(0)
+        : food.defaultServingAmount.toStringAsFixed(2);
+
+    void apply() {
+      _quantityController.text = quantityText;
+      _selectedUnit = food.defaultServingUnit;
+      _initializedForm = true;
+    }
+
+    if (!notify || !mounted) {
+      apply();
+      return;
+    }
+
+    setState(apply);
   }
 
   Future<void> _pickDate() async {
@@ -157,19 +213,6 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
               validateQuantity: _validateQuantity,
               onSave: () => _save(value),
               isSubmitting: isSubmitting,
-              initializedForm: _initializedForm,
-              onInitializeForm: () {
-                if (_initializedForm) {
-                  return;
-                }
-                _initializedForm = true;
-                _quantityController.text = value.defaultServingAmount
-                            .truncateToDouble() ==
-                        value.defaultServingAmount
-                    ? value.defaultServingAmount.toStringAsFixed(0)
-                    : value.defaultServingAmount.toStringAsFixed(2);
-                _selectedUnit = value.defaultServingUnit;
-              },
             ),
           ),
           if (isSubmitting) ...[
@@ -204,8 +247,6 @@ class _FoodDetailContent extends StatelessWidget {
     required this.validateQuantity,
     required this.onSave,
     required this.isSubmitting,
-    required this.initializedForm,
-    required this.onInitializeForm,
   });
 
   final FoodDetail food;
@@ -217,17 +258,11 @@ class _FoodDetailContent extends StatelessWidget {
   final String? Function(String?) validateQuantity;
   final VoidCallback onSave;
   final bool isSubmitting;
-  final bool initializedForm;
-  final VoidCallback onInitializeForm;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tokens = AppTheme.of(context);
-
-    if (!initializedForm) {
-      onInitializeForm();
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

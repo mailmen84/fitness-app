@@ -1,6 +1,6 @@
 # fitness-app
 
-`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now includes the shared app foundation, auth/onboarding scaffolding, Today meal tracking, food search and meal logging, Nutrition overview, Progress tracking, and a real More/settings area.
+`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now includes the shared app platform, dev-only auth/onboarding flows, Today meal tracking, food search and meal logging, Nutrition overview, Progress tracking, and a real More/settings area.
 
 ## Non-Negotiable Repository Rule
 
@@ -16,7 +16,7 @@ No new root folder should ever be created. Do not create a nested `fitness-app` 
 - Backend: FastAPI, Pydantic, SQLAlchemy, Alembic
 - Database: PostgreSQL
 - Local infrastructure: Docker Compose for PostgreSQL
-- Testing foundation: Flutter widget tests, FastAPI TestClient tests
+- Testing: Flutter widget tests, FastAPI TestClient tests
 
 ## Repository Structure
 
@@ -106,9 +106,9 @@ The following milestones are already present in the repository state:
 
 ## Current Milestone
 
-Current milestone: post-MVP polish and cleanup.
+Current milestone: stability and verification pass.
 
-This phase assumes the core MVP runtime is now working and focuses on improving stability, consistency, usability, and maintainability without introducing major new features.
+This phase assumes the polished MVP runtime is now working and focuses on initialization safety, predictability, verification confidence, and low-risk cleanup without introducing major new features.
 
 ## Current Product Scope
 
@@ -305,11 +305,12 @@ In the current Codex environment used to shape this repo, Flutter and Python too
 
 ## Next Step After The Current Milestone
 
-After post-MVP polish and cleanup, the next step should come from the cleaner baseline: either deepen automated verification and regression coverage or choose the next feature milestone intentionally.
+After the stability and verification pass, the next likely milestone should be either real authentication or deployment/demo readiness from the now-cleaner MVP baseline.
 
 ## Final Guardrail
 
 Never create a new root folder for this project. All repository work must remain inside `C:\New folder\fitness-app`.
+
 
 
 

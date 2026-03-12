@@ -43,6 +43,7 @@ class _GoalSettingsScreenState extends ConsumerState<GoalSettingsScreen> {
   final _targetValueController = TextEditingController();
   final _notesController = TextEditingController();
 
+  ProviderSubscription<AsyncValue<CurrentGoalData?>>? _currentGoalSubscription;
   String _goalCode = _goalOptions.first;
   String _targetUnit = 'kg';
   DateTime? _startsOn;
@@ -50,7 +51,28 @@ class _GoalSettingsScreenState extends ConsumerState<GoalSettingsScreen> {
   bool _initializedForm = false;
 
   @override
+  void initState() {
+    super.initState();
+    _currentGoalSubscription = ref.listenManual<AsyncValue<CurrentGoalData?>>(
+      currentGoalControllerProvider,
+      (previous, next) {
+        if (_initializedForm) {
+          return;
+        }
+        next.whenData(
+          (goal) => _seedForm(
+            goal,
+            notify: previous != null,
+          ),
+        );
+      },
+      fireImmediately: true,
+    );
+  }
+
+  @override
   void dispose() {
+    _currentGoalSubscription?.close();
     _titleController.dispose();
     _targetValueController.dispose();
     _notesController.dispose();
@@ -67,33 +89,42 @@ class _GoalSettingsScreenState extends ConsumerState<GoalSettingsScreen> {
     };
   }
 
-  void _seedForm(CurrentGoalData? goal) {
-    if (goal == null) {
-      _goalCode = _goalOptions.first;
-      _titleController.text = _defaultTitleForCode(_goalCode);
-      _targetValueController.clear();
-      _targetUnit = 'kg';
-      _notesController.clear();
-      _startsOn = null;
-      _endsOn = null;
-    } else {
-      _goalCode = goal.code.isEmpty ? _goalOptions.first : goal.code;
-      if (!_goalOptions.contains(_goalCode)) {
+  void _seedForm(CurrentGoalData? goal, {required bool notify}) {
+    void apply() {
+      if (goal == null) {
         _goalCode = _goalOptions.first;
+        _titleController.text = _defaultTitleForCode(_goalCode);
+        _targetValueController.clear();
+        _targetUnit = 'kg';
+        _notesController.clear();
+        _startsOn = null;
+        _endsOn = null;
+      } else {
+        _goalCode = goal.code.isEmpty ? _goalOptions.first : goal.code;
+        if (!_goalOptions.contains(_goalCode)) {
+          _goalCode = _goalOptions.first;
+        }
+        _titleController.text = goal.title;
+        _targetValueController.text = goal.targetValue == null
+            ? ''
+            : formatMoreNumber(goal.targetValue!);
+        _targetUnit = goal.targetUnit ?? '';
+        if (!_unitOptions.contains(_targetUnit)) {
+          _targetUnit = '';
+        }
+        _notesController.text = goal.notes ?? '';
+        _startsOn = goal.startsOn;
+        _endsOn = goal.endsOn;
       }
-      _titleController.text = goal.title;
-      _targetValueController.text = goal.targetValue == null
-          ? ''
-          : formatMoreNumber(goal.targetValue!);
-      _targetUnit = goal.targetUnit ?? '';
-      if (!_unitOptions.contains(_targetUnit)) {
-        _targetUnit = '';
-      }
-      _notesController.text = goal.notes ?? '';
-      _startsOn = goal.startsOn;
-      _endsOn = goal.endsOn;
+      _initializedForm = true;
     }
-    _initializedForm = true;
+
+    if (!notify || !mounted) {
+      apply();
+      return;
+    }
+
+    setState(apply);
   }
 
   Future<void> _pickStartDate() async {
@@ -244,10 +275,6 @@ class _GoalSettingsScreenState extends ConsumerState<GoalSettingsScreen> {
     bool isSubmitting,
     String? submissionError,
   ) {
-    if (!_initializedForm) {
-      _seedForm(goal);
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -6,7 +6,7 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_foundation_endpoint_returns_backend_summary() -> None:
+def test_system_endpoint_returns_backend_summary() -> None:
     response = client.get('/api/v1/system/foundation')
 
     assert response.status_code == 200

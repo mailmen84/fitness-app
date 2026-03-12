@@ -29,11 +29,33 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   final _heightController = TextEditingController();
   final _bioController = TextEditingController();
 
+  ProviderSubscription<AsyncValue<CurrentUserData>>? _currentUserSubscription;
   DateTime? _birthDate;
   bool _initializedForm = false;
 
   @override
+  void initState() {
+    super.initState();
+    _currentUserSubscription = ref.listenManual<AsyncValue<CurrentUserData>>(
+      currentUserControllerProvider,
+      (previous, next) {
+        if (_initializedForm) {
+          return;
+        }
+        next.whenData(
+          (user) => _seedForm(
+            user,
+            notify: previous != null,
+          ),
+        );
+      },
+      fireImmediately: true,
+    );
+  }
+
+  @override
   void dispose() {
+    _currentUserSubscription?.close();
     _emailController.dispose();
     _displayNameController.dispose();
     _firstNameController.dispose();
@@ -43,17 +65,26 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     super.dispose();
   }
 
-  void _seedForm(CurrentUserData user) {
-    _emailController.text = user.email;
-    _displayNameController.text = user.profile?.displayName ?? '';
-    _firstNameController.text = user.profile?.firstName ?? '';
-    _lastNameController.text = user.profile?.lastName ?? '';
-    _heightController.text = user.profile?.heightCm == null
-        ? ''
-        : formatMoreNumber(user.profile!.heightCm!);
-    _bioController.text = user.profile?.bio ?? '';
-    _birthDate = user.profile?.birthDate;
-    _initializedForm = true;
+  void _seedForm(CurrentUserData user, {required bool notify}) {
+    void apply() {
+      _emailController.text = user.email;
+      _displayNameController.text = user.profile?.displayName ?? '';
+      _firstNameController.text = user.profile?.firstName ?? '';
+      _lastNameController.text = user.profile?.lastName ?? '';
+      _heightController.text = user.profile?.heightCm == null
+          ? ''
+          : formatMoreNumber(user.profile!.heightCm!);
+      _bioController.text = user.profile?.bio ?? '';
+      _birthDate = user.profile?.birthDate;
+      _initializedForm = true;
+    }
+
+    if (!notify || !mounted) {
+      apply();
+      return;
+    }
+
+    setState(apply);
   }
 
   Future<void> _pickBirthDate() async {
@@ -167,11 +198,10 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                     .reload,
               ),
             ),
-            data: (value) => _buildForm(
+            data: (_) => _buildForm(
               context,
               theme,
               tokens,
-              value,
               isSubmitting,
               submissionError,
             ),
@@ -185,14 +215,9 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     BuildContext context,
     ThemeData theme,
     AppThemeTokens tokens,
-    CurrentUserData user,
     bool isSubmitting,
     String? submissionError,
   ) {
-    if (!_initializedForm) {
-      _seedForm(user);
-    }
-
     return AppStandardCard(
       child: Form(
         key: _formKey,

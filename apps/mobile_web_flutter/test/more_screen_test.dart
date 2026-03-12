@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile_web_flutter/features/more/domain/more_models.dart';
 import 'package:mobile_web_flutter/features/more/infrastructure/more_repository.dart';
+import 'package:mobile_web_flutter/features/more/presentation/goal_settings_screen.dart';
 import 'package:mobile_web_flutter/features/more/presentation/more_screen.dart';
+import 'package:mobile_web_flutter/features/more/presentation/preferences_screen.dart';
+import 'package:mobile_web_flutter/features/more/presentation/profile_settings_screen.dart';
 
 class _FakeMoreRepository implements MoreRepository {
   @override
@@ -120,29 +123,77 @@ class _FakeMoreRepository implements MoreRepository {
   }
 }
 
+TextFormField _textFormField(WidgetTester tester, String label) {
+  return tester.widget<TextFormField>(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget is TextFormField && widget.decoration?.labelText == label,
+      description: 'TextFormField($label)',
+    ),
+  );
+}
+
+Future<void> _pumpMoreScreen(WidgetTester tester, Widget child) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        moreRepositoryProvider.overrideWithValue(_FakeMoreRepository()),
+      ],
+      child: MaterialApp(
+        home: Scaffold(body: child),
+      ),
+    ),
+  );
+
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 350));
+}
+
 void main() {
   testWidgets('renders the More home with profile, settings, and future modules', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          moreRepositoryProvider.overrideWithValue(_FakeMoreRepository()),
-        ],
-        child: const MaterialApp(
-          home: Scaffold(body: MoreScreen()),
-        ),
-      ),
-    );
+    await _pumpMoreScreen(tester, const MoreScreen());
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-
-    expect(find.text('More & profile'), findsOneWidget);
+    expect(find.text('More & settings'), findsOneWidget);
     expect(find.text('Preview User'), findsNWidgets(2));
     expect(find.text('Cut to 82 kg'), findsOneWidget);
     expect(find.textContaining('Europe/Dublin'), findsOneWidget);
     expect(find.text('PED placeholder'), findsOneWidget);
     expect(find.text('Sign out (preview)'), findsOneWidget);
+  });
+
+  testWidgets('profile settings seed the loaded profile values without exceptions', (
+    tester,
+  ) async {
+    await _pumpMoreScreen(tester, const ProfileSettingsScreen());
+
+    expect(tester.takeException(), isNull);
+    expect(_textFormField(tester, 'Email').controller?.text, 'preview.user@example.com');
+    expect(_textFormField(tester, 'Display name').controller?.text, 'Preview User');
+    expect(_textFormField(tester, 'Height (cm)').controller?.text, '180.5');
+    expect(_textFormField(tester, 'Bio').controller?.text, 'Cutting phase profile');
+  });
+
+  testWidgets('goal settings seed the loaded goal values without exceptions', (
+    tester,
+  ) async {
+    await _pumpMoreScreen(tester, const GoalSettingsScreen());
+
+    expect(tester.takeException(), isNull);
+    expect(_textFormField(tester, 'Goal title').controller?.text, 'Cut to 82 kg');
+    expect(_textFormField(tester, 'Target value').controller?.text, '82');
+    expect(_textFormField(tester, 'Notes').controller?.text, 'Stay consistent.');
+  });
+
+  testWidgets('preferences screen seeds the loaded values without exceptions', (
+    tester,
+  ) async {
+    await _pumpMoreScreen(tester, const PreferencesScreen());
+
+    expect(tester.takeException(), isNull);
+    expect(_textFormField(tester, 'Timezone').controller?.text, 'Europe/Dublin');
+    expect(_textFormField(tester, 'Daily calorie target').controller?.text, '2200');
+    expect(_textFormField(tester, 'Daily protein target').controller?.text, '165');
   });
 }

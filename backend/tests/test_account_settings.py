@@ -63,6 +63,11 @@ class FakeUsersService:
         )
 
 
+class EmailConflictUsersService(FakeUsersService):
+    async def update_current_user(self, user_id, payload):  # noqa: ANN001
+        raise ValueError('email_already_in_use')
+
+
 class FakeGoalsService:
     async def get_current_goal(self, user_id):  # noqa: ANN001
         return GoalRead(
@@ -168,6 +173,23 @@ def test_users_me_routes_return_profile_shapes() -> None:
     assert update_response.status_code == 200
     assert update_response.json()['email'] == 'updated.user@example.com'
     assert update_response.json()['profile']['bio'] == 'Updated bio'
+
+
+def test_users_me_update_returns_email_conflict() -> None:
+    app.dependency_overrides[get_current_user] = override_current_user
+    app.dependency_overrides[get_users_service] = EmailConflictUsersService
+
+    response = client.patch(
+        '/api/v1/users/me',
+        json={
+            'email': 'duplicate.user@example.com',
+        },
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 409
+    assert response.json()['detail'] == 'That email address is already in use.'
 
 
 def test_goals_current_routes_return_get_and_put_shapes() -> None:

@@ -2,15 +2,15 @@
 
 This file intentionally describes only the active phase.
 
-Current phase: post-MVP polish and cleanup.
+Current phase: stability and verification pass.
 
 ## Goal
 
-Improve the existing working MVP so it feels more stable, consistent, usable, and maintainable without introducing major new product features.
+Improve the existing polished MVP so it behaves more predictably, initializes more safely, and carries stronger verification confidence without introducing major new product features.
 
 ## Current Baseline
 
-The app now has a working MVP runtime across:
+The app now has a polished working MVP runtime across:
 
 - Today
 - Add
@@ -18,7 +18,7 @@ The app now has a working MVP runtime across:
 - Progress
 - More/settings
 
-## Frontend Polish Requirements
+## Frontend Stability Requirements
 
 Work inside:
 
@@ -26,27 +26,25 @@ Work inside:
 
 Requirements:
 
-- inspect existing Flutter screens for low-risk polish opportunities
-- improve consistency of headings, spacing, button labeling, empty states, error states, loading states, and card alignment where useful
-- keep the existing design language
-- do not redesign the app
-- do not add new feature modules
-
-## Frontend Behavior Cleanup Requirements
-
-Work inside:
-
-- `apps/mobile_web_flutter`
-
-Requirements:
-
-- inspect refresh behavior after saves and mutations
-- fix small inconsistencies if found
-- improve basic user feedback where useful
-- keep Riverpod flows lifecycle-safe and straightforward
+- inspect form screens that still seed controller values during the first rendered data pass
+- replace fragile initialization patterns with safer explicit initialization where appropriate
+- keep Riverpod flows lifecycle-safe
 - do not rewrite architecture
+- do not add new product features
 
-## Backend Cleanup Requirements
+## Frontend Verification Requirements
+
+Work inside:
+
+- `apps/mobile_web_flutter`
+
+Requirements:
+
+- review the current Flutter widget test coverage
+- improve low-risk widget or screen-level verification where useful
+- keep tests practical and focused on currently working MVP behavior
+
+## Backend Verification Requirements
 
 Work inside:
 
@@ -54,18 +52,28 @@ Work inside:
 
 Requirements:
 
-- inspect current endpoints, services, and repositories for low-risk cleanup opportunities
-- improve consistency of responses and error handling where appropriate
+- review backend test coverage and low-risk consistency edges
+- improve thin endpoint consistency or focused contract tests where useful
 - keep endpoints thin
-- do not add new business features
-- do not add production auth yet
+- do not add new business modules
+- do not introduce production auth
+
+## Wording Cleanup Requirements
+
+Requirements:
+
+- remove obvious `foundation`, `scaffold`, or `preview` wording where it is no longer accurate for the current MVP
+- keep copy practical and minimal
+- preserve intentionally accurate dev-only auth wording until real auth exists
 
 ## Documentation Requirements
 
 Requirements:
 
-- update `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` so they reflect that the MVP runtime is working and the active phase is post-MVP polish and cleanup
-- keep local setup notes practical and concise
+- update `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` so they reflect the stability and verification pass
+- make it clear that the MVP runtime is working and polished
+- note that the next likely milestone after this phase is real authentication or deployment/demo readiness
+- keep setup notes practical and concise
 - preserve the repository root guardrails and anti-drift rules
 
 ## Out Of Scope
@@ -85,9 +93,9 @@ Do not add these as part of this phase:
 
 This phase is done when all of the following are true:
 
-- the root guidance files reflect post-MVP polish and cleanup instead of runtime stabilization
-- low-risk frontend consistency issues have been cleaned up
-- obvious save/refresh inconsistencies have been cleaned up without introducing lifecycle problems
-- low-risk backend consistency issues have been cleaned up
-- the working MVP is left in a cleaner and more maintainable state
+- fragile first-render form seeding has been replaced where needed in the working MVP flows
+- focused frontend and backend verification coverage is stronger than before
+- obvious outdated MVP wording has been cleaned up where appropriate
+- the root guidance files reflect the stability and verification pass
+- the project is left in a more predictable and verifiable MVP state
 - no new root folder was created

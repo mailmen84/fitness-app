@@ -113,14 +113,14 @@ These milestones are already present in the repository state:
 
 ## Current Milestone
 
-Current milestone: post-MVP polish and cleanup.
+Current milestone: stability and verification pass.
 
 Status:
 
 - the core MVP structure is now present across Today, meal logging, Nutrition, Progress, and More/settings
 - a working MVP runtime has now been achieved on a real local pass across Today, Add, Nutrition, Progress, and More/settings
 - the current job is not to add a new product module
-- the current job is to improve polish, cleanup, stability, consistency, and maintainability from that baseline
+- the current job is to improve initialization safety, predictability, verification confidence, and low-risk maintainability from that baseline
 
 ## What Already Exists
 
@@ -170,14 +170,14 @@ Status:
 
 ## Current Functional Focus
 
-The active focus is post-MVP polish and cleanup.
+The active focus is the stability and verification pass.
 
 That means the next work should:
 
-- clean up low-risk inconsistencies in Flutter screens, copy, spacing, button labels, and card alignment
-- smooth out save and refresh behavior without introducing lifecycle regressions
-- improve backend response and error-handling consistency where useful
-- keep documentation practical while avoiding a new product vertical slice
+- replace fragile form initialization with explicit lifecycle-safe setup where needed
+- keep save and refresh behavior predictable without introducing lifecycle regressions
+- improve focused frontend and backend verification coverage where useful
+- keep documentation practical and aligned with the polished working MVP
 
 ## Backend Meal Rules
 
@@ -241,4 +241,5 @@ Meaning:
 
 ## Expected Next Step After The Current Milestone
 
-After post-MVP polish and cleanup, the next step should come from the cleaner baseline: deepen automated verification and regression coverage or intentionally choose the next product slice.
+After the stability and verification pass, the next likely milestone should be real authentication or deployment/demo readiness from the stronger MVP baseline.
+

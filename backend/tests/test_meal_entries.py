@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -46,6 +46,16 @@ class FakeMealsService:
         return DeleteResponse()
 
 
+class FoodNotFoundMealsService(FakeMealsService):
+    async def create_meal_entry(self, user_id, payload):  # noqa: ANN001
+        raise LookupError('food_not_found')
+
+
+class InvalidUnitMealsService(FakeMealsService):
+    async def update_meal_entry(self, user_id, entry_id, payload):  # noqa: ANN001
+        raise ValueError('unit_mismatch')
+
+
 async def override_current_user():
     return SimpleNamespace(id=uuid4())
 
@@ -75,6 +85,48 @@ def test_create_meal_entry_endpoint_returns_entry_shape() -> None:
     payload = response.json()
     assert payload['food_name'] == 'Greek Yogurt'
     assert payload['unit'] == 'g'
+
+
+def test_create_meal_entry_endpoint_returns_food_not_found_error() -> None:
+    app.dependency_overrides[get_current_user] = override_current_user
+    app.dependency_overrides[get_meals_service] = FoodNotFoundMealsService
+
+    response = client.post(
+        '/api/v1/meals/entries',
+        json={
+            'date': '2026-03-10',
+            'meal_section': 'breakfast',
+            'food_id': str(uuid4()),
+            'quantity': 170,
+            'unit': 'g',
+        },
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 404
+    assert response.json()['detail'] == 'Food was not found.'
+
+
+def test_update_meal_entry_endpoint_returns_unit_mismatch_error() -> None:
+    app.dependency_overrides[get_current_user] = override_current_user
+    app.dependency_overrides[get_meals_service] = InvalidUnitMealsService
+
+    response = client.patch(
+        f'/api/v1/meals/entries/{uuid4()}',
+        json={
+            'quantity': 200,
+            'unit': 'ml',
+        },
+    )
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert (
+        response.json()['detail']
+        == 'The requested unit does not match the selected food serving unit.'
+    )
 
 
 def test_delete_meal_entry_endpoint_returns_delete_shape() -> None:
