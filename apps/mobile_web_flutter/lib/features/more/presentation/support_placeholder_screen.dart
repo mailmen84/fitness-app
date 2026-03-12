@@ -71,7 +71,7 @@ class SupportPlaceholderScreen extends StatelessWidget {
                 SelectableText(Environment.defaultApiBaseUrl),
                 const SizedBox(height: 16),
                 Text(
-                  'The next planned milestone after More/settings polish is runtime verification and stabilization.',
+                  'The current focus is deployment and demo readiness for the authenticated MVP.',
                   style: theme.textTheme.bodyMedium,
                 ),
               ],

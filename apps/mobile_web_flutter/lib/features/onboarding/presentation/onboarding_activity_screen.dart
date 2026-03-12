@@ -62,7 +62,7 @@ class _OnboardingActivityScreenState
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'This stays intentionally high-level so the next milestone can build real Today recommendations without revisiting the foundation.',
+                    'Keep this high-level so onboarding stays quick while the rest of the MVP remains simple and predictable.',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],

@@ -13,10 +13,47 @@ from app.infrastructure.persistence.database import dispose_engine
 logger = logging.getLogger(__name__)
 
 
+def _display_host(host: str) -> str:
+    normalized_host = host.strip()
+    if normalized_host in {'0.0.0.0', '::'}:
+        return 'localhost'
+    return normalized_host or 'localhost'
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings = get_settings()
-    logger.info('Starting backend in %s mode.', settings.environment)
+    public_host = _display_host(settings.host)
+    normalized_environment = settings.environment.strip().lower()
+
+    logger.info(
+        'Starting backend in %s mode at http://%s:%s%s',
+        settings.environment,
+        public_host,
+        settings.port,
+        settings.api_v1_prefix,
+    )
+    if settings.docs_enabled:
+        logger.info(
+            'Interactive API docs available at http://%s:%s/docs',
+            public_host,
+            settings.port,
+        )
+    if settings.uses_insecure_default_auth_secret:
+        message = (
+            'Using the default development auth secret. Set '
+            'BACKEND_AUTH_SECRET_KEY before shared demos or deployment.'
+        )
+        if normalized_environment == 'development':
+            logger.info(message)
+        else:
+            logger.warning(message)
+    if normalized_environment not in {'development', 'local'} and settings.docs_enabled:
+        logger.warning(
+            'API docs are enabled outside development. Disable '
+            'BACKEND_DOCS_ENABLED for tighter deployment settings.'
+        )
+
     yield
     await dispose_engine()
 

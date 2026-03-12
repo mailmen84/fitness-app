@@ -62,7 +62,7 @@ class _OnboardingGoalScreenState extends ConsumerState<OnboardingGoalScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Choose the high-level goal you want this foundation to carry into later backend persistence and dashboard work.',
+                    'Choose the high-level goal you want the app to emphasize first.',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],
@@ -73,7 +73,7 @@ class _OnboardingGoalScreenState extends ConsumerState<OnboardingGoalScreen> {
               const AppErrorBlock(
                 title: 'Choose a goal first',
                 message:
-                    'Select one foundation goal before moving to the stats step.',
+                    'Select one goal before moving to the stats step.',
               ),
             ],
             for (final option in OnboardingGoalOption.values) ...[
@@ -114,7 +114,7 @@ class _OnboardingGoalScreenState extends ConsumerState<OnboardingGoalScreen> {
             const AppEmptyStateBlock(
               title: 'Saved locally for now',
               message:
-                  'Goal selection lives in Riverpod state in this milestone. The backend goal API foundation is ready, but frontend sync stays deferred.',
+                  'This onboarding step still lives in the local draft until setup is finished. The dedicated goal settings flow remains separate after signup.',
             ),
           ],
         ),

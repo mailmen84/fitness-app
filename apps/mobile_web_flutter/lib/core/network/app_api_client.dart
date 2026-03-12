@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+const _apiBaseUrlHelp =
+    'Make sure the backend is running and API_BASE_URL points to the backend host, like http://localhost:8000, or to the full /api/v1 prefix.';
+
 class ApiException implements Exception {
   const ApiException({
     required this.message,
@@ -24,11 +27,26 @@ class AppApiClient {
   final String baseUrl;
   final String? accessToken;
 
+  String _normalizedBasePath(Uri baseUri) {
+    final segments = baseUri.pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .toList(growable: true);
+
+    if (segments.length >= 2 &&
+        segments[segments.length - 2] == 'api' &&
+        segments.last == 'v1') {
+      segments.removeLast();
+      segments.removeLast();
+    } else if (segments.isNotEmpty && segments.last == 'api') {
+      segments.removeLast();
+    }
+
+    return segments.isEmpty ? '' : '/${segments.join('/')}';
+  }
+
   Uri _buildUri(String path, [Map<String, String>? queryParameters]) {
     final baseUri = Uri.parse(baseUrl);
-    final basePath = baseUri.path.endsWith('/')
-        ? baseUri.path.substring(0, baseUri.path.length - 1)
-        : baseUri.path;
+    final basePath = _normalizedBasePath(baseUri);
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     final apiPath = '${basePath.isEmpty ? '' : basePath}/api/v1$normalizedPath';
     return baseUri.replace(
@@ -57,13 +75,11 @@ class AppApiClient {
       return await request();
     } on http.ClientException catch (error) {
       throw ApiException(
-        message:
-            'Could not reach the backend. Make sure the API is running and API_BASE_URL is correct. ${error.message}',
+        message: 'Could not reach the backend. $_apiBaseUrlHelp ${error.message}',
       );
     } catch (_) {
       throw const ApiException(
-        message:
-            'Network request failed. Make sure the backend is running and API_BASE_URL is correct.',
+        message: 'Network request failed. $_apiBaseUrlHelp',
       );
     }
   }

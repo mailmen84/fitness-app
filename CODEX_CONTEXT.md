@@ -8,7 +8,7 @@ Project: `fitness-app`
 
 Purpose:
 
-- build a Flutter client and FastAPI backend for a nutrition and fitness tracking product
+- build and maintain a Flutter client plus FastAPI backend for a nutrition and fitness tracking product
 - move in vertical slices without drifting into unrequested product scope
 - preserve a clean monorepo structure and predictable engineering handoff state
 
@@ -93,9 +93,8 @@ These milestones are already present in the repository state:
 - Today refresh after meal entry mutations
 - meal entry nutrition snapshot persistence
 
-7. Backend integration cleanup and Nutrition overview foundation
-- shared frontend API seams cleaned for Today, meal logging, and nutrition
-- backend nutrition overview and macro foundation endpoints
+7. Nutrition overview foundation
+- backend nutrition overview and macro endpoints
 - frontend Nutrition overview screen with day, week, and month ranges
 - lightweight calorie, macro, category, and contributor summaries
 
@@ -106,26 +105,31 @@ These milestones are already present in the repository state:
 
 9. More/settings polish
 - frontend More/Profile home
-- profile settings, goals settings, units/preferences, support placeholder, and polished PED placeholder screens
+- profile settings, goals settings, units/preferences, support placeholder, and PED placeholder screens
 - frontend reuse of `/users/me`, `/goals/current`, and `/preferences` through the More repository/controller layer
-- account/settings test scaffolding added around the thin backend contracts
+- account/settings test scaffolding around the thin backend contracts
 
 10. Real authentication
 - backend signup, login, password hashing, bearer token issuing, and current-session restore
-- backend authenticated current-user resolution over bearer access tokens instead of the old debug-header path
+- backend authenticated current-user resolution over bearer access tokens
 - frontend login, signup, persisted session restore, authenticated route guarding, and sign-out
 - current MVP modules now operate under the authenticated user account
 
-## Current Milestone
+11. Deployment and demo readiness cleanup
+- local env/config guidance is clearer
+- startup docs for Docker, backend, and Flutter are easier to follow
+- demo-seed behavior and auth limitations are documented more explicitly
+- low-risk runtime wording and setup guidance are cleaner for demos
 
-Current milestone: real authentication.
+## Current Phase
+
+Current phase: deployment and demo readiness.
 
 Status:
 
-- the core MVP structure is now present across Today, meal logging, Nutrition, Progress, and More/settings
-- a working MVP runtime has now been achieved on a real local pass across Today, Add, Nutrition, Progress, and More/settings
-- the current job is not to add a new product module
-- the current job is to finish and verify the real multi-user auth path while preserving the working MVP modules
+- the project is now an authenticated working MVP on a real local pass
+- the active work is to make the repo easier to run, demo, and maintain without broad rewrites
+- this phase is not for adding major new product modules
 
 ## What Already Exists
 
@@ -135,104 +139,32 @@ Status:
 - welcome, login, signup, onboarding goal, stats, activity, and target screens
 - Today screen backed by the backend day meals contract
 - add hub, quick add, food search, food detail, and meal detail screens
-- Riverpod controllers for Today loading, food search, meal logging flow, Nutrition overview loading, Progress loading/mutations, and More/settings loading/mutations
-- shared API client using the current environment base URL and bearer access token headers
-- navigation from Today meal cards and quick actions into the add flow
-- Today refresh after meal entry create, update, and delete
-- Nutrition overview screen with day, week, and month range support, summary cards, category rows, and top contributors
-- Progress overview screen with latest weight, weight trend, latest measurements, and current goal summary
-- weight history and add-weight flow
-- measurement history and add-measurement flow
-- More/Profile home with profile summary, navigation rows, settings screens, support placeholder, and polished PED placeholder
-- working MVP runtime on a real local pass across Today, Add, Nutrition, Progress, and More/settings
+- Nutrition overview screen with day, week, and month range support
+- Progress overview plus weight and measurement flows
+- More/Profile home plus profile, goals, preferences, support, and PED routes
+- shared API client using bearer access tokens
+- authenticated route guarding and session restore
 
 ### Backend
 
 - FastAPI app with versioned routes
 - auth endpoints for signup, login, and current-session restore
-- users, goals, and preferences foundation endpoints
-- foods endpoints:
-  - `GET /api/v1/foods/search?q=`
-  - `GET /api/v1/foods/{food_id}`
-- meals endpoints:
-  - `GET /api/v1/meals?date=YYYY-MM-DD`
-  - `POST /api/v1/meals/entries`
-  - `PATCH /api/v1/meals/entries/{entry_id}`
-  - `DELETE /api/v1/meals/entries/{entry_id}`
-- nutrition endpoints:
-  - `GET /api/v1/nutrition/overview?range=day&date=YYYY-MM-DD`
-  - `GET /api/v1/nutrition/macro/{macro_type}?range=day&date=YYYY-MM-DD`
-- progress endpoints:
-  - `GET /api/v1/progress/overview`
-  - `GET /api/v1/progress/weight`
-  - `POST /api/v1/progress/weight`
-  - `GET /api/v1/progress/measurements`
-  - `POST /api/v1/progress/measurements`
-- meal entry snapshot persistence for calories, protein, carbs, and fat
-- development food seed dataset for search and testing
-- lightweight Nutrition aggregation for totals, targets, category rows, and contributors
-- lightweight Progress aggregation for latest weight, previous-entry delta, latest measurement snapshot rows, and current goal summary when available
+- users, goals, preferences, foods, meals, nutrition, progress, health, and system endpoints
+- PostgreSQL persistence with Alembic migrations
+- seeded demo food data for search and local smoke tests
+- current-user resolution from bearer tokens for authenticated routes
 
 ## Current Functional Focus
 
-The active focus is the real-authentication milestone.
+The active focus is deployment and demo readiness.
 
-That means the next work should:
+That means current work should:
 
-- keep signup, login, session restore, and sign-out behavior predictable
-- keep authenticated endpoint usage scoped to the signed-in user across working MVP modules
-- improve focused frontend and backend auth verification where useful
-- keep documentation practical and aligned with the now-authenticated MVP
-
-## Backend Meal Rules
-
-These rules are currently expected and should not drift without explicit instruction:
-
-- meal sections are fixed to:
-  - breakfast
-  - lunch
-  - dinner
-  - snacks
-- `GET /api/v1/meals?date=...` must always return all four sections, even if empty
-- a meal container should be reused or created per user, date, and meal section when inserting entries
-- meal entries must persist snapshot values for:
-  - `food_name`
-  - `calories_total`
-  - `protein_total`
-  - `carbs_total`
-  - `fat_total`
-- meal history should stay stable even if food records change later
-- advanced unit conversion is not in scope yet; current logic is based on the food's default serving unit
-
-## Frontend Implementation Rules
-
-- use the existing shared theme and shared widgets first
-- keep feature screens focused on composition and user interaction
-- keep API calls inside repositories, not directly inside widgets
-- keep selected date and target meal section in Riverpod state for the add flow
-- keep Today as the source of post-mutation refresh for the selected day
-- keep Nutrition on the backend-backed overview contract already in the repo
-- keep Progress on the backend-backed overview, weight, and measurement contracts already in the repo
-- keep More/settings on the existing users, goals, and preferences contracts already in the repo
-- prefer practical, explicit navigation over speculative abstractions
-- keep placeholder areas clearly labeled if they are not part of the active slice
-
-## Must Not Be Implemented Unless Explicitly Requested
-
-Do not add these on your own:
-
-- refresh-token rotation or server-side session revocation
-- password reset or email verification flows
-- social auth
-- advanced nutrition analytics, micronutrient deep dives, or chart-heavy nutrition surfaces
-- advanced Progress analytics, photo logging, or coaching systems
-- barcode scanning
-- recipes
-- meal templates or repeat-yesterday logic
-- advanced search ranking or external food providers
-- advanced unit conversion or nutrition calculation engines
-- unrelated workout, coaching, social, or subscription features
-- a new repository root folder
+- keep env and config usage predictable and well documented
+- make local startup steps easier for another developer or tester to follow
+- keep demo data behavior clear and lightweight
+- improve low-risk runtime wording, logging, and setup guidance where useful
+- avoid broad rewrites or major product behavior changes
 
 ## Current Auth Rule
 
@@ -243,11 +175,22 @@ Meaning:
 - frontend auth state is driven by backend signup, login, and current-session restore
 - frontend route guarding depends on the authenticated bearer session
 - backend current-user resolution uses bearer access tokens instead of debug headers
-- auth hardening beyond the current access-token flow is still future work
+- refresh tokens, password reset, email verification, and social auth are still future work
 
-## Expected Next Step After The Current Milestone
+## Must Not Be Implemented Unless Explicitly Requested
 
-After the real-authentication milestone, the next likely milestone should be auth stabilization and demo/deployment readiness from the stronger MVP baseline.
+Do not add these on your own:
 
+- production deployment infrastructure beyond documentation or setup notes
+- refresh-token rotation or server-side session revocation
+- password reset or email verification flows
+- social auth
+- barcode scanning
+- recipes
+- advanced nutrition analytics or chart-heavy progress coaching
+- unrelated workout, coaching, social, or subscription features
+- a new repository root folder
 
+## Expected Next Step After This Phase
 
+After deployment and demo readiness, the next likely milestone should be true deployment and production-readiness hardening, including stronger auth hardening and release/deployment preparation.

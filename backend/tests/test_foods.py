@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -18,7 +18,7 @@ class FakeFoodsService:
                 FoodSearchResultRead(
                     id=uuid4(),
                     name='Greek Yogurt',
-                    brand='Preview Pantry',
+                    brand='Demo Pantry',
                     default_serving_amount=Decimal('170.00'),
                     default_serving_unit='g',
                     is_verified=True,
@@ -36,7 +36,7 @@ class FakeFoodsService:
             created_at='2026-03-10T00:00:00Z',
             updated_at='2026-03-10T00:00:00Z',
             name='Greek Yogurt',
-            brand='Preview Pantry',
+            brand='Demo Pantry',
             default_serving_amount=Decimal('170.00'),
             default_serving_unit='g',
             source='development_seed',
@@ -89,3 +89,4 @@ def test_food_detail_endpoint_returns_macro_fields() -> None:
     payload = response.json()
     assert payload['name'] == 'Greek Yogurt'
     assert payload['protein'] in ('17.00', 17.0, 17)
+

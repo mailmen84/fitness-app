@@ -2,15 +2,15 @@
 
 This file intentionally describes only the active phase.
 
-Current phase: real authentication.
+Current phase: deployment and demo readiness.
 
 ## Goal
 
-Replace the old dev-only auth path with real multi-user authentication while preserving the current working MVP structure across Today, Add, Nutrition, Progress, and More.
+Prepare the authenticated working MVP so it is easier to run, demonstrate, and maintain without adding major new product features.
 
 ## Current Baseline
 
-The app now has a stable working MVP runtime across:
+The app now has an authenticated working MVP across:
 
 - Today
 - Add
@@ -18,77 +18,56 @@ The app now has a stable working MVP runtime across:
 - Progress
 - More/settings
 
-The next major gap being closed in this phase is real authentication.
+Real auth is already in place. This phase is about making the repo and local run flow cleaner for demos and handoff.
 
-Core real-auth implementation is now in place. Any remaining work in this phase should stay focused on auth cleanup, verification, and integration confidence rather than new product scope.
+## Environment And Config Requirements
 
-## Backend Authentication Requirements
-
-Work inside:
-
-- `backend`
+Work inside the existing repository root.
 
 Requirements:
 
-- implement real signup and login foundations
-- use secure password hashing
-- issue bearer access tokens appropriate for the current architecture
-- resolve the current user from the authenticated token instead of the old debug-header path
-- keep endpoints thin
-- keep business logic in services
-- keep persistence logic in repositories
+- review backend and frontend config usage for clarity and consistency
+- remove stale or misleading env/config guidance
+- avoid fragile hard-coded assumptions where low-risk cleanup is possible
+- keep local setup practical for another developer or tester
 
-## Frontend Authentication Requirements
-
-Work inside:
-
-- `apps/mobile_web_flutter`
+## Documentation And Run-Flow Requirements
 
 Requirements:
 
-- connect Login and Signup screens to real backend auth
-- persist the authenticated session for the current app platforms
-- update route guards to use real auth state
-- ensure authenticated users reach the app shell and logged-out users are redirected correctly
-- keep UI changes minimal and aligned with the existing screens
+- improve `README.md` and `backend/README.md`
+- keep `CODEX_CONTEXT.md` and `NEXT_TASK.md` aligned with the active phase
+- make Docker, backend, and Flutter startup steps easier to follow
+- document the current auth flow, token/session behavior, and known limits
+- keep docs practical and concise
 
-## Current-User Integration Requirements
-
-Requirements:
-
-- update authenticated endpoints so they resolve the actual signed-in user
-- preserve current module behavior for Today, Add, Nutrition, Progress, and More
-- keep user-specific data scoped correctly under the authenticated account
-- avoid broad rewrites of working feature modules
-
-## Documentation Requirements
+## Demo And Stability Requirements
 
 Requirements:
 
-- update `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` so they reflect the real-authentication milestone
-- make it clear that the earlier dev-only auth path is being replaced
-- note that the next likely milestone after auth is auth stabilization plus demo/deployment readiness
-- keep the repository root guardrails and anti-drift rules intact
+- review demo data behavior and keep it lightweight and predictable
+- improve low-risk runtime wording, logging, and setup guidance where useful
+- do not rewrite architecture
+- do not change major product behavior unless needed for readiness
 
 ## Out Of Scope
 
 Do not add these as part of this phase:
 
-- social auth
-- password reset flows unless a truly minimal blocker appears
-- production deployment changes
 - new product modules
-- broad architecture rewrites
+- barcode scanning
+- recipes
+- production deployment infrastructure beyond documentation or setup notes
+- broad architecture refactors
 - a new repository root folder
 
 ## Definition Of Done
 
 This phase is done when all of the following are true:
 
-- backend signup, login, password hashing, token issuance, and bearer current-user resolution are in place
-- frontend login, signup, session restore, and route guarding use the real auth path
-- authenticated endpoints continue working for Today, Add, Nutrition, Progress, and More under the signed-in user
-- the root guidance files reflect the real-authentication milestone
-- the project is left ready for an auth-stabilization and demo/deployment-readiness pass next
+- env and config usage is clearer and more consistent for local runs
+- startup steps for Docker, backend, and Flutter are easier to follow
+- the current auth flow and its local limits are clearly documented
+- demo data behavior is understandable for local demos
+- the project is left in a cleaner state for a future true deployment and production-readiness pass
 - no new root folder was created
-

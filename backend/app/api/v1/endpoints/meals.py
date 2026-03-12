@@ -28,7 +28,7 @@ def _meal_entry_lookup_http_exception(error: LookupError) -> HTTPException:
 def _meal_entry_payload_http_exception(error: ValueError) -> HTTPException:
     detail_by_code = {
         'unit_mismatch': 'The requested unit does not match the selected food serving unit.',
-        'food_required': 'A meal entry must stay linked to a food item in this milestone.',
+        'food_required': 'A meal entry must stay linked to a food item in the current MVP.',
     }
     return HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -89,3 +89,4 @@ async def delete_meal_entry(
         return await meals_service.delete_meal_entry(current_user.id, entry_id)
     except LookupError as error:
         raise _meal_entry_lookup_http_exception(error) from error
+

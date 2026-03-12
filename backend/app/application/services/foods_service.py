@@ -1,4 +1,4 @@
-﻿from decimal import Decimal
+from decimal import Decimal
 from uuid import UUID
 
 from app.domain.foods.models import Food, FoodNutrient
@@ -14,7 +14,7 @@ _FAT_CODES = {'fat', 'fats', 'total_fat'}
 _SEED_FOODS = (
     {
         'name': 'Greek Yogurt',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '170.00',
         'unit': 'g',
         'nutrients': (
@@ -26,7 +26,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'Chicken Breast',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '120.00',
         'unit': 'g',
         'nutrients': (
@@ -38,7 +38,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'White Rice',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '150.00',
         'unit': 'g',
         'nutrients': (
@@ -50,7 +50,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'Salmon Fillet',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '120.00',
         'unit': 'g',
         'nutrients': (
@@ -74,7 +74,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'Oats',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '40.00',
         'unit': 'g',
         'nutrients': (
@@ -86,7 +86,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'Protein Bar',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '1.00',
         'unit': 'bar',
         'nutrients': (
@@ -110,7 +110,7 @@ _SEED_FOODS = (
     },
     {
         'name': 'Milk',
-        'brand': 'Preview Pantry',
+        'brand': 'Demo Pantry',
         'amount': '250.00',
         'unit': 'ml',
         'nutrients': (
@@ -254,3 +254,4 @@ class FoodsService:
         if food is None:
             return None
         return self._to_food_detail(food)
+

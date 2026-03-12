@@ -21,25 +21,30 @@ class SystemService:
             environment=self.settings.environment,
             api_prefix=self.settings.api_v1_prefix,
             database=DatabaseFoundation(
-                driver=parsed.scheme or "unknown",
-                migrations="alembic configured",
+                driver=parsed.scheme or 'unknown',
+                migrations='alembic configured',
                 url_configured=bool(self.settings.database_url),
             ),
             resources=[
                 FoundationResource(
-                    name="users",
-                    status="scaffolded",
-                    notes="Initial models, schemas, repositories, and services are in place.",
+                    name='auth',
+                    status='active',
+                    notes='Signup, login, bearer tokens, and current-session restore support the authenticated MVP.',
                 ),
                 FoundationResource(
-                    name="nutrition",
-                    status="scaffolded",
-                    notes="Foods, nutrients, meals, and meal entries are modeled without calculations.",
+                    name='users',
+                    status='working_mvp',
+                    notes='Authenticated current-user reads and profile editing are active.',
                 ),
                 FoundationResource(
-                    name="progress",
-                    status="scaffolded",
-                    notes="Weight and measurement logs are modeled without analytics.",
+                    name='nutrition',
+                    status='working_mvp',
+                    notes='Food search uses a small seeded demo dataset and nutrition summaries read logged meals.',
+                ),
+                FoundationResource(
+                    name='progress',
+                    status='working_mvp',
+                    notes='Weight and measurement logging are active for the authenticated user.',
                 ),
             ],
         )

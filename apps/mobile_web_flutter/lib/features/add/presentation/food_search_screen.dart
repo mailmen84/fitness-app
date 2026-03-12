@@ -70,7 +70,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
           MealLoggingTargetCard(
             title: 'Food search',
             description:
-                'Search the development food set and open a food to choose quantity before saving it into the selected meal.',
+                'Search the seeded demo food set and open a food to choose quantity before saving it into the selected meal.',
             selectedDate: flowState.selectedDate,
             selectedMealSection: flowState.mealSection,
             onPickDate: _pickDate,
@@ -116,7 +116,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
             loading: () => const AppLoadingBlock(
               title: 'Searching foods',
               message:
-                  'Looking through the development dataset for matching foods.',
+                  'Looking through the seeded demo dataset for matching foods.',
             ),
             error: (error, _) => AppErrorBlock(
               title: 'Food search failed',
@@ -137,7 +137,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                     ? const AppEmptyStateBlock(
                         title: 'No matching foods found',
                         message:
-                            'Try a broader search term from the seeded development dataset, like chicken, rice, banana, or oats.',
+                            'Try a broader search term from the seeded demo dataset, like chicken, rice, banana, or oats.',
                       )
                     : Column(
                         children: [
@@ -220,4 +220,5 @@ class _FoodSearchResultCard extends StatelessWidget {
     );
   }
 }
+
 

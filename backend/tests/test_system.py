@@ -13,4 +13,5 @@ def test_system_endpoint_returns_backend_summary() -> None:
     payload = response.json()
     assert payload['service'] == 'Fitness App API'
     assert payload['database']['migrations'] == 'alembic configured'
-    assert any(resource['name'] == 'users' for resource in payload['resources'])
+    assert any(resource['name'] == 'auth' for resource in payload['resources'])
+    assert any(resource['status'] == 'working_mvp' for resource in payload['resources'])

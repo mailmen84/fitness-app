@@ -2,36 +2,35 @@
 
 FastAPI backend for `fitness-app`.
 
-## What This Backend Contains Today
+## Current State
 
-- versioned FastAPI routes under `app/api/v1`
-- layered services and repositories
-- PostgreSQL persistence via SQLAlchemy
+The backend currently provides:
+
+- real signup, login, bearer token issuing, and current-session restore
+- bearer-token current-user resolution for authenticated routes
+- users, goals, preferences, foods, meals, nutrition, progress, health, and system endpoints
+- PostgreSQL persistence through SQLAlchemy
 - Alembic migrations
-- thin contracts for users, goals, preferences, foods, meals, nutrition, and progress
-- real signup, login, password hashing, bearer token issuing, and bearer current-user resolution
+- a small seeded demo food dataset for local demos and smoke passes
 
-## Prerequisites
+## Local Quick Start
 
-- Python 3.11+
-- PostgreSQL running locally through the root Docker Compose setup
-- root-level `.env` created from `..\.env.example`
-
-If `python` on Windows opens the Microsoft Store instead of running Python, install Python 3.11+ and disable the relevant App execution alias before continuing.
-
-## Prepare The Environment
+### 1. Create the root `.env`
 
 From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+### 2. Start PostgreSQL
+
+```powershell
 docker compose up -d postgres
 docker compose ps
 ```
 
-This repository currently uses Docker Compose only for PostgreSQL. The backend itself is run locally from the `backend` folder.
-
-## Run The Backend Locally
+### 3. Run the backend
 
 ```powershell
 cd backend
@@ -42,31 +41,42 @@ alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The local API will then be available at:
+Useful local URLs:
 
-- `http://localhost:8000`
-- docs: `http://localhost:8000/docs`
-- redoc: `http://localhost:8000/redoc`
+- API docs: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+- API prefix: `http://localhost:8000/api/v1`
 
-## Run Backend Tests Locally
+## Important Environment Settings
 
-With the virtual environment active:
+The backend reads settings from the root `.env` file with the `BACKEND_` prefix.
 
-```powershell
-pytest -q
-```
+Commonly used values:
 
-## Flutter Local Run
+- `BACKEND_DATABASE_URL`: async database URL for the running app
+- `BACKEND_ALEMBIC_DATABASE_URL`: optional sync URL override for Alembic
+- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer tokens
+- `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: token lifetime in seconds
+- `BACKEND_DOCS_ENABLED`: enable or disable `/docs`, `/redoc`, and OpenAPI JSON
+- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit extra CORS origins when localhost defaults are not enough
 
-Flutter is run from `apps/mobile_web_flutter` in the repository root. For the current frontend instructions:
+Localhost origins are already allowed by default for web demos. The app also logs a reminder at startup if the default development auth secret is still in use.
 
-```powershell
-cd ..\apps\mobile_web_flutter
-flutter create . --platforms=android,ios,web,windows,linux,macos
-flutter pub get
-flutter test
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
-```
+## Current Auth Behavior
+
+The backend now uses real auth for normal MVP use:
+
+- `POST /api/v1/auth/signup` creates a user, hashes the password, and returns a bearer token
+- `POST /api/v1/auth/login` verifies credentials and returns a bearer token
+- `GET /api/v1/auth/session` restores the current authenticated session
+- authenticated feature endpoints resolve the user from `Authorization: Bearer <token>`
+
+Still intentionally deferred:
+
+- refresh tokens
+- password reset
+- email verification
+- social auth
 
 ## Current Route Surface
 
@@ -95,22 +105,38 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 - `GET /api/v1/progress/measurements`
 - `POST /api/v1/progress/measurements`
 
-## Current Auth Notes
+## Demo Data Notes
 
-The working MVP backend now uses real auth for normal app use:
+Food search and food detail use a small seeded demo dataset when the foods table is empty. That keeps local demos predictable without introducing a large fake dataset.
 
-- signup and login issue bearer access tokens
-- authenticated endpoints resolve the current user from the bearer token
-- refresh tokens, password reset, email verification, and social auth are still intentionally deferred
+Good demo search terms include:
 
-## Notes
+- `yogurt`
+- `chicken`
+- `rice`
+- `banana`
+- `oats`
+- `salmon`
 
-- PostgreSQL is the default database target.
-- Local CORS is enabled by default for `localhost`, `127.0.0.1`, and `[::1]` on any port so Flutter web can call the API during development.
-- Use `BACKEND_CORS_ALLOWED_ORIGINS` to add explicit non-local origins later without changing code.
-- `GET /api/v1/meals?date=...` always returns four meal sections for the selected date, even when they are empty.
-- Food search uses a small development seed dataset on first use so search is testable before admin tooling exists.
-- Meal entry writes persist snapshot calories, protein, carbs, and fat onto the entry for stable history.
-- Social auth, password reset, barcode scanning, recipes, and advanced nutrition or progress logic are intentionally deferred.
+## Local Verification
 
+With the backend virtual environment active:
 
+```powershell
+pytest -q
+```
+
+Focused smoke checks that are especially useful before demos:
+
+- auth signup/login/session restore
+- meal search and add flow
+- Today read contract
+- Nutrition overview
+- Progress create flows
+- More profile/goals/preferences endpoints
+
+## Known Limits
+
+- this backend is ready for local demos, not full production deployment
+- release packaging, hosted deployment, observability, and stronger secret management are still future work
+- auth hardening beyond the current bearer access-token flow is still future work

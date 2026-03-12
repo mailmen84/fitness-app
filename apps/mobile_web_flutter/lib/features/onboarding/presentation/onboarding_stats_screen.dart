@@ -100,7 +100,7 @@ class _OnboardingStatsScreenState extends ConsumerState<OnboardingStatsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Keep this lightweight. The goal is just enough structure to support onboarding persistence and the next dashboard milestone.',
+                    'Keep this lightweight. The goal is just enough structure to personalize the authenticated MVP without making onboarding heavy.',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],
@@ -177,7 +177,7 @@ class _OnboardingStatsScreenState extends ConsumerState<OnboardingStatsScreen> {
             ),
             SizedBox(height: tokens.sectionSpacing),
             const AppEmptyStateBlock(
-              title: 'Metric-first foundation',
+              title: 'Baseline stats only',
               message:
                   'Unit preferences and richer profile editing can grow from here later. This step keeps the onboarding draft clean and minimal for now.',
             ),
