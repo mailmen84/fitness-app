@@ -28,6 +28,7 @@ class CurrentUserUpdate(DomainSchema):
 class UserRead(TimestampedReadSchema):
     email: str
     is_active: bool
+    email_verified: bool
 
 
 class UserProfileCreate(DomainSchema):

@@ -4,6 +4,7 @@ class AppRoutePaths {
   static const welcome = '/welcome';
   static const login = '/login';
   static const signup = '/signup';
+  static const forgotPassword = '/forgot-password';
   static const onboardingGoal = '/onboarding/goal';
   static const onboardingStats = '/onboarding/stats';
   static const onboardingActivity = '/onboarding/activity';

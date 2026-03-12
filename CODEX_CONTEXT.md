@@ -95,7 +95,7 @@ These milestones are already present in the repository state:
 
 7. Nutrition overview foundation
 - backend nutrition overview and macro endpoints
-- frontend Nutrition overview screen with day, week, and month ranges
+- frontend Nutrition overview screen with day, week, and month range support
 - lightweight calorie, macro, category, and contributor summaries
 
 8. Progress foundation
@@ -121,22 +121,29 @@ These milestones are already present in the repository state:
 - demo-seed behavior and auth limitations are documented more explicitly
 - low-risk runtime wording and setup guidance are cleaner for demos
 
+12. Auth hardening and security basics
+- backend access tokens now carry stronger security claims and token-version groundwork
+- backend password reset request/confirm foundations exist with hashed one-time tokens
+- backend email verification challenge foundations exist for future UI and delivery work
+- frontend login now exposes a forgot-password route and the reset flow restores a real session
+- auth-focused backend test coverage and lightweight frontend password-reset test scaffolding were expanded
+
 ## Current Phase
 
-Current phase: deployment and demo readiness.
+Current phase: auth hardening and security basics.
 
 Status:
 
-- the project is now an authenticated working MVP on a real local pass
-- the active work is to make the repo easier to run, demo, and maintain without broad rewrites
-- this phase is not for adding major new product modules
+- the project is an authenticated working MVP with demo-ready core flows
+- the active work is to strengthen auth robustness, session safety, and account-security foundations without broad rewrites
+- this phase is not for adding unrelated product modules or full production infrastructure
 
 ## What Already Exists
 
 ### Frontend
 
 - app shell with bottom navigation
-- welcome, login, signup, onboarding goal, stats, activity, and target screens
+- welcome, login, signup, forgot-password, and onboarding screens
 - Today screen backed by the backend day meals contract
 - add hub, quick add, food search, food detail, and meal detail screens
 - Nutrition overview screen with day, week, and month range support
@@ -148,42 +155,44 @@ Status:
 ### Backend
 
 - FastAPI app with versioned routes
-- auth endpoints for signup, login, and current-session restore
+- auth endpoints for signup, login, current-session restore, password reset, and email-verification groundwork
 - users, goals, preferences, foods, meals, nutrition, progress, health, and system endpoints
 - PostgreSQL persistence with Alembic migrations
 - seeded demo food data for search and local smoke tests
 - current-user resolution from bearer tokens for authenticated routes
+- token-version checks that prepare for future session invalidation work
 
 ## Current Functional Focus
 
-The active focus is deployment and demo readiness.
+The active focus is auth hardening and security basics.
 
 That means current work should:
 
-- keep env and config usage predictable and well documented
-- make local startup steps easier for another developer or tester to follow
-- keep demo data behavior clear and lightweight
-- improve low-risk runtime wording, logging, and setup guidance where useful
-- avoid broad rewrites or major product behavior changes
+- keep bearer-token auth predictable and easier to evolve safely
+- improve password validation, error handling, and low-risk security defaults
+- keep password reset and email verification groundwork practical for local work
+- improve auth UX where useful without redesigning the app
+- avoid broad rewrites, production infrastructure work, or unrelated product features
 
 ## Current Auth Rule
 
-The working app now uses real auth for normal use.
+The working app uses real auth for normal use, and that auth is being strengthened.
 
 Meaning:
 
-- frontend auth state is driven by backend signup, login, and current-session restore
+- frontend auth state is driven by backend signup, login, password reset, and current-session restore
 - frontend route guarding depends on the authenticated bearer session
 - backend current-user resolution uses bearer access tokens instead of debug headers
-- refresh tokens, password reset, email verification, and social auth are still future work
+- password-reset completion invalidates older access tokens for that account through token-version checks
+- refresh tokens, delivery-backed email flows, and broader session-management infrastructure are still future work
 
 ## Must Not Be Implemented Unless Explicitly Requested
 
 Do not add these on your own:
 
 - production deployment infrastructure beyond documentation or setup notes
-- refresh-token rotation or server-side session revocation
-- password reset or email verification flows
+- refresh-token rotation or full server-side session revocation systems
+- outbound email delivery infrastructure or broad notification systems
 - social auth
 - barcode scanning
 - recipes
@@ -193,4 +202,4 @@ Do not add these on your own:
 
 ## Expected Next Step After This Phase
 
-After deployment and demo readiness, the next likely milestone should be true deployment and production-readiness hardening, including stronger auth hardening and release/deployment preparation.
+After auth hardening and security basics, the next likely milestone should be deployment readiness and production infrastructure planning.

@@ -17,6 +17,15 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<AuthChallengeData> requestPasswordReset({
+    required String email,
+  });
+
+  Future<AuthTokenBundle> confirmPasswordReset({
+    required String token,
+    required String newPassword,
+  });
+
   Future<AuthSessionData> restoreSession(String accessToken);
 
   Future<void> completeOnboarding({
@@ -74,6 +83,34 @@ class ApiAuthRepository implements AuthRepository {
       body: {
         'email': email.trim(),
         'password': password,
+      },
+    );
+    return AuthTokenBundle.fromJson(payload);
+  }
+
+  @override
+  Future<AuthChallengeData> requestPasswordReset({
+    required String email,
+  }) async {
+    final payload = await _client.postJsonMap(
+      '/auth/password-reset/request',
+      body: {
+        'email': email.trim(),
+      },
+    );
+    return AuthChallengeData.fromJson(payload);
+  }
+
+  @override
+  Future<AuthTokenBundle> confirmPasswordReset({
+    required String token,
+    required String newPassword,
+  }) async {
+    final payload = await _client.postJsonMap(
+      '/auth/password-reset/confirm',
+      body: {
+        'token': token.trim(),
+        'new_password': newPassword,
       },
     );
     return AuthTokenBundle.fromJson(payload);

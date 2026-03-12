@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field, computed_field
+from pydantic import Field, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _DEFAULT_AUTH_SECRET_KEY = 'development-auth-secret-change-me-before-production-use'
@@ -21,7 +21,9 @@ class Settings(BaseSettings):
     alembic_database_url: str | None = None
     database_echo: bool = False
     auth_secret_key: str = _DEFAULT_AUTH_SECRET_KEY
-    auth_access_token_expire_seconds: int = Field(default=60 * 60 * 24 * 7, gt=0)
+    auth_access_token_expire_seconds: int = Field(default=60 * 60 * 12, gt=60)
+    auth_password_reset_token_expire_seconds: int = Field(default=60 * 60, gt=300)
+    auth_email_verification_token_expire_seconds: int = Field(default=60 * 60 * 24, gt=300)
     cors_allowed_origins: list[str] = Field(
         default_factory=lambda: [
             'http://localhost',
@@ -38,6 +40,14 @@ class Settings(BaseSettings):
         extra='ignore',
     )
 
+    @field_validator('auth_secret_key')
+    @classmethod
+    def _validate_auth_secret_key(cls, value: str) -> str:
+        normalized = value.strip()
+        if len(normalized) < 32:
+            raise ValueError('BACKEND_AUTH_SECRET_KEY must be at least 32 characters long.')
+        return normalized
+
     @computed_field
     @property
     def resolved_alembic_database_url(self) -> str:
@@ -49,6 +59,11 @@ class Settings(BaseSettings):
     @property
     def uses_insecure_default_auth_secret(self) -> bool:
         return self.auth_secret_key == _DEFAULT_AUTH_SECRET_KEY
+
+    @computed_field
+    @property
+    def allows_sensitive_token_previews(self) -> bool:
+        return self.environment.strip().lower() in {'development', 'local', 'test'}
 
 
 @lru_cache

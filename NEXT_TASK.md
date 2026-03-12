@@ -2,15 +2,15 @@
 
 This file intentionally describes only the active phase.
 
-Current phase: deployment and demo readiness.
+Current phase: auth hardening and security basics.
 
 ## Goal
 
-Prepare the authenticated working MVP so it is easier to run, demonstrate, and maintain without adding major new product features.
+Strengthen the working authentication system and security foundations without adding unrelated product features, broad rewrites, or full production infrastructure.
 
 ## Current Baseline
 
-The app now has an authenticated working MVP across:
+The app is now a demo-ready authenticated MVP across:
 
 - Today
 - Add
@@ -18,37 +18,43 @@ The app now has an authenticated working MVP across:
 - Progress
 - More/settings
 
-Real auth is already in place. This phase is about making the repo and local run flow cleaner for demos and handoff.
+Real auth is already in place. This phase is about making that auth more robust, more predictable, and easier to extend safely.
 
-## Environment And Config Requirements
-
-Work inside the existing repository root.
+## Auth Hardening Requirements
 
 Requirements:
 
-- review backend and frontend config usage for clarity and consistency
-- remove stale or misleading env/config guidance
-- avoid fragile hard-coded assumptions where low-risk cleanup is possible
-- keep local setup practical for another developer or tester
+- review the current bearer-token auth flow and keep it lifecycle-safe
+- improve low-risk security foundations where practical
+- prepare the session model for future refresh-token or revocation work without fully implementing that whole system yet
+- improve auth validation and error handling consistency
 
-## Documentation And Run-Flow Requirements
-
-Requirements:
-
-- improve `README.md` and `backend/README.md`
-- keep `CODEX_CONTEXT.md` and `NEXT_TASK.md` aligned with the active phase
-- make Docker, backend, and Flutter startup steps easier to follow
-- document the current auth flow, token/session behavior, and known limits
-- keep docs practical and concise
-
-## Demo And Stability Requirements
+## Account Security Foundations
 
 Requirements:
 
-- review demo data behavior and keep it lightweight and predictable
-- improve low-risk runtime wording, logging, and setup guidance where useful
-- do not rewrite architecture
-- do not change major product behavior unless needed for readiness
+- keep password-reset support practical and minimal
+- add or preserve clean groundwork for email verification
+- keep developer-friendly local behavior where appropriate
+- avoid adding social auth or unrelated account features
+
+## Backend And Frontend Requirements
+
+Requirements:
+
+- keep backend endpoints thin and move logic into services and repositories
+- keep frontend auth UX minimal and aligned with existing screens
+- keep route guards and session restore predictable
+- improve low-risk auth/security documentation and config clarity where useful
+
+## Documentation Requirements
+
+Requirements:
+
+- keep `README.md`, `CODEX_CONTEXT.md`, and `NEXT_TASK.md` aligned with this active phase
+- document the strengthened auth flow, current reset/verification foundations, and current limits
+- keep local setup notes practical and concise
+- point the likely next milestone toward deployment readiness and production infrastructure planning
 
 ## Out Of Scope
 
@@ -57,7 +63,8 @@ Do not add these as part of this phase:
 - new product modules
 - barcode scanning
 - recipes
-- production deployment infrastructure beyond documentation or setup notes
+- social auth
+- full production deployment infrastructure
 - broad architecture refactors
 - a new repository root folder
 
@@ -65,9 +72,9 @@ Do not add these as part of this phase:
 
 This phase is done when all of the following are true:
 
-- env and config usage is clearer and more consistent for local runs
-- startup steps for Docker, backend, and Flutter are easier to follow
-- the current auth flow and its local limits are clearly documented
-- demo data behavior is understandable for local demos
-- the project is left in a cleaner state for a future true deployment and production-readiness pass
+- bearer-token auth is in a stronger, more predictable state than before
+- password reset and email verification groundwork are cleaner and better documented
+- low-risk auth/session lifecycle issues have been reduced rather than expanded
+- auth-related verification confidence is better than at the start of the phase
+- the repo docs clearly reflect the new auth-hardening milestone and the next likely deployment-readiness phase
 - no new root folder was created

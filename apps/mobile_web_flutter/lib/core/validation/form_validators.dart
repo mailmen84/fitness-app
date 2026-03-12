@@ -9,6 +9,10 @@ class FormValidators {
     return null;
   }
 
+  static String? requiredTextToken(String? value) {
+    return requiredText(value, label: 'Reset token');
+  }
+
   static String? email(String? value) {
     final normalized = value?.trim() ?? '';
     if (normalized.isEmpty) {
@@ -29,6 +33,22 @@ class FormValidators {
     }
     if (normalized.length < 8) {
       return 'Password must be at least 8 characters.';
+    }
+    return null;
+  }
+
+  static String? securePassword(String? value) {
+    final passwordError = password(value);
+    if (passwordError != null) {
+      return passwordError;
+    }
+
+    final normalized = value ?? '';
+    if (!normalized.contains(RegExp(r'[A-Za-z]'))) {
+      return 'Password must include at least one letter.';
+    }
+    if (!normalized.contains(RegExp(r'\d'))) {
+      return 'Password must include at least one number.';
     }
     return null;
   }

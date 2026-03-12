@@ -11,6 +11,7 @@ _PASSWORD_ALGORITHM = 'pbkdf2_sha256'
 _PASSWORD_HASH_NAME = 'sha256'
 _PASSWORD_ITERATIONS = 600_000
 _TOKEN_ALGORITHM = 'HS256'
+_ONE_TIME_TOKEN_HASH_ALGORITHM = 'sha256'
 
 
 class InvalidTokenError(Exception):
@@ -21,6 +22,10 @@ class InvalidPasswordHashError(Exception):
     pass
 
 
+class WeakPasswordError(ValueError):
+    pass
+
+
 def _urlsafe_b64encode(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).decode('utf-8').rstrip('=')
 
@@ -28,6 +33,15 @@ def _urlsafe_b64encode(raw: bytes) -> str:
 def _urlsafe_b64decode(value: str) -> bytes:
     padding = '=' * (-len(value) % 4)
     return base64.urlsafe_b64decode(f'{value}{padding}')
+
+
+def validate_password_strength(password: str) -> None:
+    if len(password) < 8:
+        raise WeakPasswordError('password_too_short')
+    if not any(character.isalpha() for character in password):
+        raise WeakPasswordError('password_requires_letter')
+    if not any(character.isdigit() for character in password):
+        raise WeakPasswordError('password_requires_number')
 
 
 def hash_password(password: str) -> str:
@@ -66,6 +80,31 @@ def verify_password(password: str, password_hash: str | None) -> bool:
     return hmac.compare_digest(actual_digest, expected_digest)
 
 
+def generate_one_time_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_one_time_token(token: str) -> str:
+    digest = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    return f'{_ONE_TIME_TOKEN_HASH_ALGORITHM}${digest}'
+
+
+def verify_one_time_token(token: str, token_hash: str | None) -> bool:
+    if token_hash is None:
+        return False
+
+    try:
+        algorithm, expected_digest = token_hash.split('$', 1)
+    except ValueError:
+        return False
+
+    if algorithm != _ONE_TIME_TOKEN_HASH_ALGORITHM:
+        return False
+
+    actual_digest = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    return hmac.compare_digest(actual_digest, expected_digest)
+
+
 def create_access_token(
     *,
     subject: str,
@@ -73,13 +112,17 @@ def create_access_token(
     expires_in_seconds: int,
     additional_claims: Mapping[str, Any] | None = None,
 ) -> str:
+    now = int(time.time())
     header = {
         'alg': _TOKEN_ALGORITHM,
         'typ': 'JWT',
     }
     payload = {
         'sub': subject,
-        'exp': int(time.time()) + expires_in_seconds,
+        'exp': now + expires_in_seconds,
+        'iat': now,
+        'nbf': now,
+        'jti': secrets.token_hex(16),
         'token_type': 'access',
     }
     if additional_claims:
@@ -127,10 +170,28 @@ def decode_access_token(token: str, *, secret_key: str) -> dict[str, Any]:
     if payload.get('token_type') != 'access':
         raise InvalidTokenError('Access token type is invalid.')
 
+    now = int(time.time())
+
     expires_at = payload.get('exp')
     if not isinstance(expires_at, int):
         raise InvalidTokenError('Access token expiry is invalid.')
-    if expires_at <= int(time.time()):
+    if expires_at <= now:
         raise InvalidTokenError('Access token has expired.')
+
+    issued_at = payload.get('iat')
+    if not isinstance(issued_at, int):
+        raise InvalidTokenError('Access token issued-at claim is invalid.')
+    if issued_at > now:
+        raise InvalidTokenError('Access token issued-at claim is invalid.')
+
+    not_before = payload.get('nbf')
+    if not isinstance(not_before, int):
+        raise InvalidTokenError('Access token not-before claim is invalid.')
+    if not_before > now:
+        raise InvalidTokenError('Access token is not active yet.')
+
+    token_id = payload.get('jti')
+    if not isinstance(token_id, str) or not token_id.strip():
+        raise InvalidTokenError('Access token identifier is invalid.')
 
     return payload

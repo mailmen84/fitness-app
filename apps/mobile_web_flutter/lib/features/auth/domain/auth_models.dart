@@ -19,11 +19,13 @@ class AuthSessionData {
     required this.email,
     required this.displayName,
     required this.onboardingCompleted,
+    this.emailVerified = false,
   });
 
   final String email;
   final String? displayName;
   final bool onboardingCompleted;
+  final bool emailVerified;
 
   String get resolvedDisplayName {
     final trimmedDisplayName = displayName?.trim() ?? '';
@@ -39,6 +41,7 @@ class AuthSessionData {
       email: userJson['email'] as String? ?? '',
       displayName: profileJson['display_name'] as String?,
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
+      emailVerified: userJson['email_verified'] as bool? ?? false,
     );
   }
 }
@@ -64,6 +67,26 @@ class AuthTokenBundle {
       session: AuthSessionData.fromJson(
         json['session'] as Map<String, dynamic>? ?? const {},
       ),
+    );
+  }
+}
+
+class AuthChallengeData {
+  const AuthChallengeData({
+    required this.detail,
+    this.expiresIn,
+    this.previewToken,
+  });
+
+  final String detail;
+  final int? expiresIn;
+  final String? previewToken;
+
+  factory AuthChallengeData.fromJson(Map<String, dynamic> json) {
+    return AuthChallengeData(
+      detail: json['detail'] as String? ?? '',
+      expiresIn: json['expires_in'] as int?,
+      previewToken: json['preview_token'] as String?,
     );
   }
 }

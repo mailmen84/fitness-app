@@ -10,6 +10,7 @@ class AuthSessionState {
     this.accessToken,
     this.email,
     this.displayName,
+    this.emailVerified = false,
     this.isAuthenticated = false,
     this.hasCompletedOnboarding = false,
     this.isHydrating = true,
@@ -18,6 +19,7 @@ class AuthSessionState {
   final String? accessToken;
   final String? email;
   final String? displayName;
+  final bool emailVerified;
   final bool isAuthenticated;
   final bool hasCompletedOnboarding;
   final bool isHydrating;
@@ -28,6 +30,7 @@ class AuthSessionState {
     Object? accessToken = _unset,
     Object? email = _unset,
     Object? displayName = _unset,
+    bool? emailVerified,
     bool? isAuthenticated,
     bool? hasCompletedOnboarding,
     bool? isHydrating,
@@ -38,6 +41,7 @@ class AuthSessionState {
       email: email == _unset ? this.email : email as String?,
       displayName:
           displayName == _unset ? this.displayName : displayName as String?,
+      emailVerified: emailVerified ?? this.emailVerified,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       hasCompletedOnboarding:
           hasCompletedOnboarding ?? this.hasCompletedOnboarding,
@@ -48,6 +52,7 @@ class AuthSessionState {
 
 class AuthSessionController extends Notifier<AuthSessionState> {
   late final AuthRepository _repository;
+  bool _hasScheduledHydration = false;
 
   String _displayNameFromEmail(String email) {
     final localPart = email.split('@').first.trim();
@@ -68,8 +73,12 @@ class AuthSessionController extends Notifier<AuthSessionState> {
   @override
   AuthSessionState build() {
     _repository = ref.watch(authRepositoryProvider);
-    Future<void>.microtask(_hydrateSession);
-    return const AuthSessionState();
+    if (!_hasScheduledHydration) {
+      _hasScheduledHydration = true;
+      Future<void>.microtask(_hydrateSession);
+      return const AuthSessionState();
+    }
+    return state;
   }
 
   AuthSessionState _stateFromSession(
@@ -80,6 +89,7 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       accessToken: accessToken,
       email: session.email,
       displayName: session.resolvedDisplayName,
+      emailVerified: session.emailVerified,
       isAuthenticated: true,
       hasCompletedOnboarding: session.onboardingCompleted,
       isHydrating: false,
@@ -131,6 +141,29 @@ class AuthSessionController extends Notifier<AuthSessionState> {
       displayName: displayName,
       email: email,
       password: password,
+    );
+    await _repository.persistAccessToken(response.accessToken);
+    final nextState = _stateFromSession(
+      response.session,
+      accessToken: response.accessToken,
+    );
+    state = nextState;
+    return nextState;
+  }
+
+  Future<AuthChallengeData> requestPasswordReset({
+    required String email,
+  }) {
+    return _repository.requestPasswordReset(email: email);
+  }
+
+  Future<AuthSessionState> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    final response = await _repository.confirmPasswordReset(
+      token: token,
+      newPassword: newPassword,
     );
     await _repository.persistAccessToken(response.accessToken);
     final nextState = _stateFromSession(

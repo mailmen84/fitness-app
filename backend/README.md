@@ -8,6 +8,8 @@ The backend currently provides:
 
 - real signup, login, bearer token issuing, and current-session restore
 - bearer-token current-user resolution for authenticated routes
+- password reset challenge and confirmation endpoints
+- email verification challenge foundations for future frontend wiring
 - users, goals, preferences, foods, meals, nutrition, progress, health, and system endpoints
 - PostgreSQL persistence through SQLAlchemy
 - Alembic migrations
@@ -55,8 +57,10 @@ Commonly used values:
 
 - `BACKEND_DATABASE_URL`: async database URL for the running app
 - `BACKEND_ALEMBIC_DATABASE_URL`: optional sync URL override for Alembic
-- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer tokens
-- `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: token lifetime in seconds
+- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer tokens; use a 32+ character value outside local development
+- `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: access-token lifetime in seconds
+- `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`: password-reset token lifetime in seconds
+- `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`: email-verification token lifetime in seconds
 - `BACKEND_DOCS_ENABLED`: enable or disable `/docs`, `/redoc`, and OpenAPI JSON
 - `BACKEND_CORS_ALLOWED_ORIGINS`: explicit extra CORS origins when localhost defaults are not enough
 
@@ -70,12 +74,21 @@ The backend now uses real auth for normal MVP use:
 - `POST /api/v1/auth/login` verifies credentials and returns a bearer token
 - `GET /api/v1/auth/session` restores the current authenticated session
 - authenticated feature endpoints resolve the user from `Authorization: Bearer <token>`
+- `POST /api/v1/auth/password-reset/request` creates a password-reset challenge without disclosing whether the account exists
+- `POST /api/v1/auth/password-reset/confirm` validates a one-time token, rotates the account token version, and returns a new bearer token
+- `POST /api/v1/auth/email-verification/request` creates an email-verification challenge for the signed-in user
+- `POST /api/v1/auth/email-verification/confirm` marks the email as verified when the one-time token is valid
+
+Local-only behavior:
+
+- password reset and email verification preview tokens are only returned in `development`, `local`, and `test`
+- token-version checks provide low-risk groundwork for future session invalidation and refresh-token work
+- the current repo does not send real email yet
 
 Still intentionally deferred:
 
-- refresh tokens
-- password reset
-- email verification
+- refresh tokens and full server-side session revocation
+- outbound email delivery and email verification UI enforcement
 - social auth
 
 ## Current Route Surface
@@ -85,6 +98,10 @@ Still intentionally deferred:
 - `POST /api/v1/auth/signup`
 - `POST /api/v1/auth/login`
 - `GET /api/v1/auth/session`
+- `POST /api/v1/auth/password-reset/request`
+- `POST /api/v1/auth/password-reset/confirm`
+- `POST /api/v1/auth/email-verification/request`
+- `POST /api/v1/auth/email-verification/confirm`
 - `GET /api/v1/users/me`
 - `PATCH /api/v1/users/me`
 - `GET /api/v1/goals/current`
@@ -129,14 +146,15 @@ pytest -q
 Focused smoke checks that are especially useful before demos:
 
 - auth signup/login/session restore
-- meal search and add flow
+- forgot-password request and reset flow
 - Today read contract
+- meal search and add flow
 - Nutrition overview
 - Progress create flows
 - More profile/goals/preferences endpoints
 
 ## Known Limits
 
-- this backend is ready for local demos, not full production deployment
+- this backend is ready for local demos and auth hardening work, not full production deployment
 - release packaging, hosted deployment, observability, and stronger secret management are still future work
-- auth hardening beyond the current bearer access-token flow is still future work
+- refresh-token rotation, email delivery, and full session-management infrastructure are still future work

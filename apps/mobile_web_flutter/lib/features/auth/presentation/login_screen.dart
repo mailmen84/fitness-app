@@ -178,6 +178,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
                     AppSecondaryButton(
+                      label: 'Forgot password',
+                      expand: true,
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => context.go(AppRoutePaths.forgotPassword),
+                    ),
+                    const SizedBox(height: 12),
+                    AppSecondaryButton(
                       label: 'Back to welcome',
                       expand: true,
                       onPressed: _isSubmitting
@@ -194,4 +202,5 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 }
+
 

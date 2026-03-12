@@ -154,11 +154,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(height: 16),
                     AppTextField(
                       label: 'Password',
-                      hintText: 'At least 8 characters',
+                      hintText: 'At least 8 characters with a letter and number',
                       controller: _passwordController,
                       obscureText: true,
                       textInputAction: TextInputAction.next,
-                      validator: FormValidators.password,
+                      validator: FormValidators.securePassword,
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
@@ -225,3 +225,4 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 }
+

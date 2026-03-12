@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -19,9 +19,7 @@ class UsersRepository(BaseRepository):
 
     async def get_user_with_profile(self, user_id: UUID) -> User | None:
         result = await self.session.execute(
-            select(User)
-            .options(selectinload(User.profile))
-            .where(User.id == user_id)
+            select(User).options(selectinload(User.profile)).where(User.id == user_id)
         )
         return result.scalar_one_or_none()
 
@@ -33,10 +31,24 @@ class UsersRepository(BaseRepository):
         )
         return result.scalar_one_or_none()
 
-    async def get_profile_for_user(self, user_id: UUID) -> UserProfile | None:
+    async def get_by_password_reset_token_hash(self, token_hash: str) -> User | None:
         result = await self.session.execute(
-            select(UserProfile).where(UserProfile.user_id == user_id)
+            select(User)
+            .options(selectinload(User.profile))
+            .where(User.password_reset_token_hash == token_hash)
         )
+        return result.scalar_one_or_none()
+
+    async def get_by_email_verification_token_hash(self, token_hash: str) -> User | None:
+        result = await self.session.execute(
+            select(User)
+            .options(selectinload(User.profile))
+            .where(User.email_verification_token_hash == token_hash)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_profile_for_user(self, user_id: UUID) -> UserProfile | None:
+        result = await self.session.execute(select(UserProfile).where(UserProfile.user_id == user_id))
         return result.scalar_one_or_none()
 
     def create_user(
@@ -45,11 +57,15 @@ class UsersRepository(BaseRepository):
         email: str,
         password_hash: str | None = None,
         is_active: bool = True,
+        auth_token_version: int = 1,
+        email_verified_at: datetime | None = None,
     ) -> User:
         user = User(
             email=_normalize_email(email),
             password_hash=password_hash,
             is_active=is_active,
+            auth_token_version=auth_token_version,
+            email_verified_at=email_verified_at,
         )
         self.add(user)
         return user

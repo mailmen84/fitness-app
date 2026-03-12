@@ -1,6 +1,6 @@
 # fitness-app
 
-`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now has an authenticated working MVP across Today, Add, Nutrition, Progress, and More/settings.
+`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now has an authenticated working MVP across Today, Add, Nutrition, Progress, and More/settings, and the active work is auth hardening and security basics.
 
 ## Non-Negotiable Repository Rule
 
@@ -12,9 +12,9 @@ Do not create a new root folder, do not create a nested `fitness-app` folder, an
 
 ## Current Phase
 
-Current phase: deployment and demo readiness.
+Current phase: auth hardening and security basics.
 
-This phase focuses on making the authenticated MVP easier to run, demonstrate, verify, and maintain without adding major new product features.
+This phase focuses on strengthening the working bearer-token auth flow, improving security defaults, and adding low-risk account security foundations without broad rewrites or unrelated product features.
 
 ## Current MVP Scope
 
@@ -27,15 +27,18 @@ Working today:
 - Nutrition overview with day, week, and month ranges
 - Progress overview, weight logging, and measurement logging
 - More/Profile home plus profile, goals, and preferences settings
+- password reset request plus local reset confirmation flow
+- backend email verification challenge foundations for future UI work
 - seeded demo foods for search and meal logging demos
 
 Still intentionally not product-complete:
 
-- refresh tokens or server-side session revocation
-- email verification, password reset, or social auth
+- refresh tokens or a full server-side revocation flow
+- outbound email delivery for password reset or verification
+- verified-email enforcement across product features
+- social auth
 - barcode scanning, recipes, or saved multi-food meal templates
-- advanced nutrition analytics or chart-heavy progress coaching
-- release packaging, hosted deployment, and production hardening
+- hosted deployment, release packaging, and production infrastructure
 
 ## Tech Stack
 
@@ -121,7 +124,7 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 - a backend origin, for example `http://localhost:8000`
 - or the full API prefix, for example `http://localhost:8000/api/v1`
 
-The Flutter client now tolerates both forms.
+The Flutter client tolerates both forms.
 
 ## Config Notes
 
@@ -131,8 +134,10 @@ The root `.env` file configures the backend. The most relevant settings for loca
 
 - `BACKEND_DATABASE_URL`: async SQLAlchemy database URL used by the app
 - `BACKEND_ALEMBIC_DATABASE_URL`: optional sync URL override for Alembic
-- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer access tokens
+- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer access tokens; use a 32+ character value outside local development
 - `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: access-token lifetime in seconds
+- `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`: password-reset token lifetime in seconds
+- `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`: email-verification token lifetime in seconds
 - `BACKEND_CORS_ALLOWED_ORIGINS`: explicit extra origins if localhost defaults are not enough
 
 Localhost origins are already allowed by default for Flutter web demos.
@@ -147,18 +152,26 @@ If you do not pass `API_BASE_URL`, the Flutter app defaults to `http://localhost
 
 ## Current Auth Flow
 
-The authenticated MVP uses this local flow:
+The authenticated MVP now uses this local flow:
 
 1. Signup or login calls the backend auth endpoints.
 2. The backend returns a bearer access token plus the current session payload.
 3. The Flutter app stores the token locally and restores the session on relaunch.
 4. Authenticated endpoints resolve the current user from the bearer token.
-5. Sign out clears the saved token and returns the app to public routes.
+5. Password reset requests create a one-time token challenge, and reset confirmation rotates the account token version before signing the user back in.
+6. Email verification challenge endpoints exist on the backend for future UI wiring.
+
+Local-only auth hardening notes:
+
+- password reset and email verification preview tokens are only returned in `development`, `local`, and `test`
+- password reset currently uses the new local reset screen and does not send real email yet
+- password-reset completion invalidates older access tokens for that account through token-version checks
 
 Current limitations:
 
 - no refresh-token flow yet
-- no password reset or email verification yet
+- no user-facing email verification screen yet
+- no server-side session revocation endpoint yet
 - no social auth yet
 - the development auth secret in `.env.example` is only appropriate for local work and demos
 
@@ -196,6 +209,7 @@ Suggested manual smoke pass after startup:
 
 - signup
 - login after sign-out
+- forgot-password request and reset flow
 - onboarding completion
 - Today meal logging
 - Nutrition overview
@@ -212,7 +226,7 @@ These root files are the current source of truth for repository direction:
 
 ## Next Likely Milestone
 
-After deployment and demo readiness, the next likely milestone should be true deployment and production-readiness hardening, including stronger auth hardening and release/deployment preparation.
+After auth hardening and security basics, the next likely milestone should be deployment readiness and production infrastructure planning.
 
 ## Final Guardrail
 

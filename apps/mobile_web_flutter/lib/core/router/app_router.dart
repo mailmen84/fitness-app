@@ -9,6 +9,7 @@ import '../../features/add/presentation/quick_add_screen.dart';
 import '../../features/app_shell/presentation/app_shell_page.dart';
 import '../../features/auth/application/auth_session.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/password_reset_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/more/presentation/goal_settings_screen.dart';
@@ -34,6 +35,7 @@ import 'app_route_paths.dart';
 const _authLocations = <String>{
   AppRoutePaths.login,
   AppRoutePaths.signup,
+  AppRoutePaths.forgotPassword,
 };
 
 const _onboardingLocations = <String>{
@@ -109,6 +111,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutePaths.signup,
         builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.forgotPassword,
+        builder: (context, state) => const PasswordResetScreen(),
       ),
       GoRoute(
         path: AppRoutePaths.onboardingGoal,
@@ -245,4 +251,3 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-

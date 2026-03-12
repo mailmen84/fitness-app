@@ -27,6 +27,7 @@ class FakeUsersService:
             updated_at=datetime(2026, 3, 11, 9, 0, tzinfo=timezone.utc),
             email='preview.user@example.com',
             is_active=True,
+            email_verified=True,
             profile=UserProfileRead(
                 id=uuid4(),
                 created_at=datetime(2026, 3, 11, 9, 0, tzinfo=timezone.utc),
@@ -48,6 +49,7 @@ class FakeUsersService:
             updated_at=datetime(2026, 3, 11, 9, 15, tzinfo=timezone.utc),
             email=payload.email or 'preview.user@example.com',
             is_active=True,
+            email_verified=True,
             profile=UserProfileRead(
                 id=uuid4(),
                 created_at=datetime(2026, 3, 11, 9, 0, tzinfo=timezone.utc),
@@ -80,6 +82,7 @@ class FakeGoalsService:
             target_value=Decimal('82.00'),
             target_unit='kg',
             is_active=True,
+            email_verified=True,
             starts_on=date(2026, 3, 1),
             ends_on=None,
             notes='Hold a steady deficit.',
@@ -96,6 +99,7 @@ class FakeGoalsService:
             target_value=payload.target_value,
             target_unit=payload.target_unit,
             is_active=True,
+            email_verified=True,
             starts_on=payload.starts_on,
             ends_on=payload.ends_on,
             notes=payload.notes,
@@ -243,3 +247,4 @@ def test_preferences_routes_return_get_and_put_shapes() -> None:
     assert put_response.status_code == 200
     assert put_response.json()['unit_system'] == 'imperial'
     assert put_response.json()['daily_protein_target'] in ('175', '175.00', 175)
+
