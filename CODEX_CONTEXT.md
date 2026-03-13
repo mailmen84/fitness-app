@@ -128,15 +128,26 @@ These milestones are already present in the repository state:
 - frontend login now exposes a forgot-password route and the reset flow restores a real session
 - auth-focused backend test coverage and lightweight frontend password-reset test scaffolding were expanded
 
+13. Deployment readiness and production planning cleanup
+- deployment docs now describe a practical hosting shape for Flutter web, FastAPI, and PostgreSQL
+- environment separation is clearer between local-style and hosted environments
+- backend CORS defaults no longer silently carry localhost assumptions into hosted environments
+- startup, handoff, and demo-readiness docs are more explicit across the repo
+
+14. Simple AWS staging deployment plan
+- the repo now documents a single preferred AWS staging shape for one developer
+- backend container startup and same-origin reverse-proxy support files exist for a Lightsail-style deployment
+- the staging plan stays lightweight and avoids broad infrastructure automation
+
 ## Current Phase
 
-Current phase: auth hardening and security basics.
+Current phase: simple AWS staging deployment plan.
 
 Status:
 
-- the project is an authenticated working MVP with demo-ready core flows
-- the active work is to strengthen auth robustness, session safety, and account-security foundations without broad rewrites
-- this phase is not for adding unrelated product modules or full production infrastructure
+- the project is a hardened, demo-ready authenticated MVP
+- the active work is to define the simplest realistic AWS staging deployment path for that MVP
+- this phase is not for full production infrastructure automation or unrelated product modules
 
 ## What Already Exists
 
@@ -151,6 +162,7 @@ Status:
 - More/Profile home plus profile, goals, preferences, support, and PED routes
 - shared API client using bearer access tokens
 - authenticated route guarding and session restore
+- Flutter web build path suitable for static hosting or same-origin staging behind a reverse proxy
 
 ### Backend
 
@@ -161,22 +173,23 @@ Status:
 - seeded demo food data for search and local smoke tests
 - current-user resolution from bearer tokens for authenticated routes
 - token-version checks that prepare for future session invalidation work
+- backend Dockerfile plus a migration-aware container entrypoint
 
 ## Current Functional Focus
 
-The active focus is auth hardening and security basics.
+The active focus is a simple AWS staging deployment plan.
 
 That means current work should:
 
-- keep bearer-token auth predictable and easier to evolve safely
-- improve password validation, error handling, and low-risk security defaults
-- keep password reset and email verification groundwork practical for local work
-- improve auth UX where useful without redesigning the app
-- avoid broad rewrites, production infrastructure work, or unrelated product features
+- keep the staging shape practical for one developer
+- prefer Lightsail-oriented AWS components when they keep complexity down
+- reduce cross-origin and handoff complexity where practical
+- document exact environment, build, and deployment steps for the existing MVP
+- avoid broad rewrites, unrelated product work, or full infrastructure automation
 
 ## Current Auth Rule
 
-The working app uses real auth for normal use, and that auth is being strengthened.
+The working app uses real auth for normal use and is already hardened beyond the original MVP path.
 
 Meaning:
 
@@ -190,7 +203,7 @@ Meaning:
 
 Do not add these on your own:
 
-- production deployment infrastructure beyond documentation or setup notes
+- full cloud infrastructure automation or vendor-specific production stacks
 - refresh-token rotation or full server-side session revocation systems
 - outbound email delivery infrastructure or broad notification systems
 - social auth
@@ -202,4 +215,4 @@ Do not add these on your own:
 
 ## Expected Next Step After This Phase
 
-After auth hardening and security basics, the next likely milestone should be deployment readiness and production infrastructure planning.
+After the simple AWS staging deployment plan, the next likely milestone should be executing the first AWS staging deployment and then stabilizing it with smoke-pass fixes.

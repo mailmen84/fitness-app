@@ -6,7 +6,7 @@ Authenticated Flutter client for `fitness-app`.
 
 The Flutter app currently includes:
 
-- welcome, login, signup, and onboarding flow
+- welcome, login, signup, forgot-password, and onboarding flow
 - Today, Add, Nutrition, Progress, and More tabs
 - backend-backed authenticated routing and session restore
 - Riverpod-based feature controllers and repositories
@@ -37,6 +37,21 @@ You can also pass the full API prefix if you prefer:
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000/api/v1
 ```
 
+## Build For AWS Staging
+
+For the recommended same-origin Lightsail staging setup, build the app against the public staging origin:
+
+```powershell
+flutter build web --release --dart-define=API_BASE_URL=https://staging.example.com
+```
+
+Deployment notes for the generated web build:
+
+- copy `build/web` to the staging instance web root
+- serve it from Nginx or an equivalent web server
+- configure SPA fallback so routes like `/login` or `/more/profile` return `index.html`
+- let the reverse proxy forward `/api/` to the backend container on the same host
+
 ## Test Locally
 
 ```powershell
@@ -49,7 +64,7 @@ The Flutter app uses a compile-time Dart define for the backend URL:
 
 - `API_BASE_URL`
 
-If you omit it, the app defaults to `http://localhost:8000`.
+If you omit it, the app defaults to `http://localhost:8000`. That default is useful for local work, but AWS staging should set the public staging URL explicitly.
 
 ## Auth Session Storage
 
@@ -63,6 +78,7 @@ Signing out clears the stored token.
 ## Local Demo Notes
 
 - signup and login are real backend flows
+- forgot-password uses the current backend reset challenge flow
 - the food search uses a small seeded demo dataset from the backend
 - meals, nutrition summaries, progress entries, and settings changes are tied to the signed-in account
 - if auth state gets stuck during local demos, sign out or clear the stored token and restart the app
@@ -70,5 +86,6 @@ Signing out clears the stored token.
 ## Known Limits
 
 - no refresh tokens yet
-- no password reset or social auth yet
+- no user-facing email verification screen yet
+- no social auth yet
 - no offline mode or caching layer yet

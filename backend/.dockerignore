@@ -1,0 +1,10 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.venv/
+venv/
+fitness_app_backend.egg-info/
+tests/

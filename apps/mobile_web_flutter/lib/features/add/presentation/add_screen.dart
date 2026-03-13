@@ -59,7 +59,7 @@ class AddScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Search the development food set, review nutrition details, and add the item into the selected meal.',
+                  'Search the seeded demo food set, review nutrition details, and add the item into the selected meal.',
                   style: theme.textTheme.bodyMedium,
                 ),
                 SizedBox(height: tokens.sectionSpacing),
@@ -88,3 +88,4 @@ class AddScreen extends ConsumerWidget {
     );
   }
 }
+

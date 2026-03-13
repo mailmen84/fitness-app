@@ -24,7 +24,6 @@ def _display_host(host: str) -> str:
 async def lifespan(_: FastAPI):
     settings = get_settings()
     public_host = _display_host(settings.host)
-    normalized_environment = settings.environment.strip().lower()
 
     logger.info(
         'Starting backend in %s mode at http://%s:%s%s',
@@ -44,14 +43,24 @@ async def lifespan(_: FastAPI):
             'Using the default development auth secret. Set '
             'BACKEND_AUTH_SECRET_KEY before shared demos or deployment.'
         )
-        if normalized_environment == 'development':
+        if settings.is_local_environment:
             logger.info(message)
         else:
             logger.warning(message)
-    if normalized_environment not in {'development', 'local'} and settings.docs_enabled:
+    if not settings.is_local_environment and settings.docs_enabled:
         logger.warning(
-            'API docs are enabled outside development. Disable '
+            'API docs are enabled outside local-style environments. Disable '
             'BACKEND_DOCS_ENABLED for tighter deployment settings.'
+        )
+    if (
+        not settings.is_local_environment
+        and not settings.resolved_cors_allowed_origins
+        and settings.resolved_cors_allow_origin_regex is None
+    ):
+        logger.warning(
+            'No non-local CORS origins are configured. Set '
+            'BACKEND_CORS_ALLOWED_ORIGINS and/or BACKEND_CORS_ALLOW_ORIGIN_REGEX '
+            'before deploying Flutter web on a different origin.'
         )
 
     yield
@@ -63,8 +72,8 @@ class CORSWrappedApplication:
         self.fastapi_app = fastapi_app
         self._cors_app = CORSMiddleware(
             app=fastapi_app,
-            allow_origins=settings.cors_allowed_origins,
-            allow_origin_regex=settings.cors_allow_origin_regex or None,
+            allow_origins=settings.resolved_cors_allowed_origins,
+            allow_origin_regex=settings.resolved_cors_allow_origin_regex,
             allow_credentials=settings.cors_allow_credentials,
             allow_methods=['*'],
             allow_headers=['*'],

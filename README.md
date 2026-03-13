@@ -1,6 +1,6 @@
 # fitness-app
 
-`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now has an authenticated working MVP across Today, Add, Nutrition, Progress, and More/settings, and the active work is auth hardening and security basics.
+`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now has a hardened, demo-ready authenticated MVP across Today, Add, Nutrition, Progress, and More/settings.
 
 ## Non-Negotiable Repository Rule
 
@@ -12,9 +12,9 @@ Do not create a new root folder, do not create a nested `fitness-app` folder, an
 
 ## Current Phase
 
-Current phase: auth hardening and security basics.
+Current phase: simple AWS staging deployment plan.
 
-This phase focuses on strengthening the working bearer-token auth flow, improving security defaults, and adding low-risk account security foundations without broad rewrites or unrelated product features.
+This phase focuses on choosing the lowest-complexity realistic AWS staging shape for the current MVP, documenting the exact run and deploy steps, and keeping the path practical for one developer.
 
 ## Current MVP Scope
 
@@ -22,13 +22,13 @@ Working today:
 
 - real signup and login with bearer-token session restore
 - onboarding flow after signup
+- password reset request plus local reset confirmation flow
+- backend email verification challenge foundations for future UI work
 - Today dashboard with date selection and meal sections
 - Add flow with quick add, food search, food detail, and meal detail
 - Nutrition overview with day, week, and month ranges
 - Progress overview, weight logging, and measurement logging
 - More/Profile home plus profile, goals, and preferences settings
-- password reset request plus local reset confirmation flow
-- backend email verification challenge foundations for future UI work
 - seeded demo foods for search and meal logging demos
 
 Still intentionally not product-complete:
@@ -38,7 +38,7 @@ Still intentionally not product-complete:
 - verified-email enforcement across product features
 - social auth
 - barcode scanning, recipes, or saved multi-food meal templates
-- hosted deployment, release packaging, and production infrastructure
+- CI/CD, infrastructure-as-code, and full production infrastructure
 
 ## Tech Stack
 
@@ -60,8 +60,12 @@ fitness-app/
     app/
     alembic/
     tests/
+    Dockerfile
+    entrypoint.sh
   .env.example
   docker-compose.yml
+  staging.nginx.example.conf
+  DEPLOYMENT.md
   README.md
   CODEX_CONTEXT.md
   NEXT_TASK.md
@@ -124,56 +128,53 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 - a backend origin, for example `http://localhost:8000`
 - or the full API prefix, for example `http://localhost:8000/api/v1`
 
-The Flutter client tolerates both forms.
+The Flutter client tolerates both forms, but for staging it is better to set `API_BASE_URL` explicitly to the public staging URL.
 
-## Config Notes
+## Environment Notes
 
 ### Backend config
 
-The root `.env` file configures the backend. The most relevant settings for local work are:
+The root `.env` file configures the backend. The most relevant settings are:
 
+- `BACKEND_ENVIRONMENT`: use `development` locally and `staging` on AWS staging
 - `BACKEND_DATABASE_URL`: async SQLAlchemy database URL used by the app
-- `BACKEND_ALEMBIC_DATABASE_URL`: optional sync URL override for Alembic
-- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer access tokens; use a 32+ character value outside local development
+- `BACKEND_ALEMBIC_DATABASE_URL`: sync URL for Alembic migrations
+- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer access tokens; use a unique 32+ character value outside local development
 - `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: access-token lifetime in seconds
 - `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`: password-reset token lifetime in seconds
 - `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`: email-verification token lifetime in seconds
-- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit extra origins if localhost defaults are not enough
-
-Localhost origins are already allowed by default for Flutter web demos.
+- `BACKEND_DOCS_ENABLED`: keep this on locally; usually disable it on staging unless you intentionally want docs exposed
+- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit staging frontend origin
+- `BACKEND_CORS_ALLOW_ORIGIN_REGEX`: leave unset unless you truly need preview hosts
+- `BACKEND_RUN_MIGRATIONS`: container-start helper used by `backend/entrypoint.sh`
 
 ### Frontend config
 
-The Flutter app does not read the root `.env` file. It uses a compile-time Dart define instead:
+The Flutter app uses compile-time Dart defines rather than the root `.env` file.
+
+Current runtime define:
 
 - `API_BASE_URL`
 
-If you do not pass `API_BASE_URL`, the Flutter app defaults to `http://localhost:8000`.
+For the recommended AWS staging setup, set `API_BASE_URL` to the public staging origin, for example `https://staging.example.com`.
 
-## Current Auth Flow
+## Recommended AWS Staging Shape
 
-The authenticated MVP now uses this local flow:
+The current simplest realistic AWS staging architecture for this repo is:
 
-1. Signup or login calls the backend auth endpoints.
-2. The backend returns a bearer access token plus the current session payload.
-3. The Flutter app stores the token locally and restores the session on relaunch.
-4. Authenticated endpoints resolve the current user from the bearer token.
-5. Password reset requests create a one-time token challenge, and reset confirmation rotates the account token version before signing the user back in.
-6. Email verification challenge endpoints exist on the backend for future UI wiring.
+- one Amazon Lightsail Linux instance for the Flutter web build and reverse proxy
+- the FastAPI backend running on that same instance in Docker using the existing backend Dockerfile
+- one Amazon Lightsail managed PostgreSQL database in the same AWS region
+- one public staging hostname, ideally backed by a Lightsail static IP
 
-Local-only auth hardening notes:
+Why this is the preferred staging shape:
 
-- password reset and email verification preview tokens are only returned in `development`, `local`, and `test`
-- password reset currently uses the new local reset screen and does not send real email yet
-- password-reset completion invalidates older access tokens for that account through token-version checks
+- it is the fewest AWS resources for the current MVP
+- it avoids cross-origin frontend/backend complexity by keeping the app same-origin
+- it fits the existing backend Dockerfile and the Flutter web build flow
+- it is practical for one developer without introducing container orchestration or CI/CD yet
 
-Current limitations:
-
-- no refresh-token flow yet
-- no user-facing email verification screen yet
-- no server-side session revocation endpoint yet
-- no social auth yet
-- the development auth secret in `.env.example` is only appropriate for local work and demos
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the exact AWS staging architecture and ordered deployment steps.
 
 ## Demo Notes
 
@@ -205,7 +206,7 @@ cd apps\mobile_web_flutter
 flutter test
 ```
 
-Suggested manual smoke pass after startup:
+Suggested manual smoke pass after startup or staging deployment:
 
 - signup
 - login after sign-out
@@ -223,10 +224,11 @@ These root files are the current source of truth for repository direction:
 - `README.md`
 - `CODEX_CONTEXT.md`
 - `NEXT_TASK.md`
+- `DEPLOYMENT.md`
 
 ## Next Likely Milestone
 
-After auth hardening and security basics, the next likely milestone should be deployment readiness and production infrastructure planning.
+After the simple AWS staging deployment plan, the next likely milestone should be first staging execution on AWS plus post-deployment stabilization.
 
 ## Final Guardrail
 

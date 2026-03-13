@@ -29,7 +29,7 @@ class SystemService:
                 FoundationResource(
                     name='auth',
                     status='active',
-                    notes='Signup, login, bearer tokens, and current-session restore support the authenticated MVP.',
+                    notes='Signup, login, bearer tokens, password reset foundations, and current-session restore support the authenticated MVP.',
                 ),
                 FoundationResource(
                     name='users',
@@ -48,3 +48,4 @@ class SystemService:
                 ),
             ],
         )
+

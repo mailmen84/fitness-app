@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 const _apiBaseUrlHelp =
-    'Make sure the backend is running and API_BASE_URL points to the backend host, like http://localhost:8000, or to the full /api/v1 prefix.';
+    'Make sure the backend is running and API_BASE_URL points to the backend host, like http://localhost:8000 for local work or https://api.example.com for deployment, or to the full /api/v1 prefix.';
 
 class ApiException implements Exception {
   const ApiException({
@@ -215,3 +215,4 @@ class AppApiClient {
     _throwRequestError(response, payload);
   }
 }
+

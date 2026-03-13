@@ -14,6 +14,7 @@ The backend currently provides:
 - PostgreSQL persistence through SQLAlchemy
 - Alembic migrations
 - a small seeded demo food dataset for local demos and smoke passes
+- a Dockerfile and migration-aware entrypoint suitable for simple staging deployment
 
 ## Local Quick Start
 
@@ -49,91 +50,52 @@ Useful local URLs:
 - ReDoc: `http://localhost:8000/redoc`
 - API prefix: `http://localhost:8000/api/v1`
 
+## Simple Container Run
+
+The backend now includes:
+
+- `Dockerfile`
+- `entrypoint.sh`
+
+Build and run locally or on a staging instance with:
+
+```powershell
+cd backend
+docker build -t fitness-app-backend .
+docker run --rm --env-file ..\.env -p 8000:8000 fitness-app-backend
+```
+
+If `BACKEND_RUN_MIGRATIONS=1`, the entrypoint runs `alembic upgrade head` before starting Uvicorn.
+
 ## Important Environment Settings
 
 The backend reads settings from the root `.env` file with the `BACKEND_` prefix.
 
 Commonly used values:
 
+- `BACKEND_ENVIRONMENT`: `development` locally; use `staging` or another non-local value for hosted environments
 - `BACKEND_DATABASE_URL`: async database URL for the running app
-- `BACKEND_ALEMBIC_DATABASE_URL`: optional sync URL override for Alembic
+- `BACKEND_ALEMBIC_DATABASE_URL`: sync URL override for Alembic
 - `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer tokens; use a 32+ character value outside local development
 - `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: access-token lifetime in seconds
 - `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`: password-reset token lifetime in seconds
 - `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`: email-verification token lifetime in seconds
 - `BACKEND_DOCS_ENABLED`: enable or disable `/docs`, `/redoc`, and OpenAPI JSON
-- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit extra CORS origins when localhost defaults are not enough
+- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit frontend origins for hosted environments
+- `BACKEND_CORS_ALLOW_ORIGIN_REGEX`: optional preview-host regex for dynamic frontend preview URLs
+- `BACKEND_RUN_MIGRATIONS`: container-start helper for `entrypoint.sh`
 
-Localhost origins are already allowed by default for web demos. The app also logs a reminder at startup if the default development auth secret is still in use.
+Localhost CORS defaults only auto-apply in local-style environments (`development`, `local`, `test`).
 
-## Current Auth Behavior
+## Recommended AWS Staging Shape
 
-The backend now uses real auth for normal MVP use:
+For the current MVP, the simplest AWS staging deployment is:
 
-- `POST /api/v1/auth/signup` creates a user, hashes the password, and returns a bearer token
-- `POST /api/v1/auth/login` verifies credentials and returns a bearer token
-- `GET /api/v1/auth/session` restores the current authenticated session
-- authenticated feature endpoints resolve the user from `Authorization: Bearer <token>`
-- `POST /api/v1/auth/password-reset/request` creates a password-reset challenge without disclosing whether the account exists
-- `POST /api/v1/auth/password-reset/confirm` validates a one-time token, rotates the account token version, and returns a new bearer token
-- `POST /api/v1/auth/email-verification/request` creates an email-verification challenge for the signed-in user
-- `POST /api/v1/auth/email-verification/confirm` marks the email as verified when the one-time token is valid
+- one Lightsail Linux instance serving the Flutter web build and reverse proxy
+- this backend running in Docker on that same instance
+- one Lightsail managed PostgreSQL database
 
-Local-only behavior:
-
-- password reset and email verification preview tokens are only returned in `development`, `local`, and `test`
-- token-version checks provide low-risk groundwork for future session invalidation and refresh-token work
-- the current repo does not send real email yet
-
-Still intentionally deferred:
-
-- refresh tokens and full server-side session revocation
-- outbound email delivery and email verification UI enforcement
-- social auth
-
-## Current Route Surface
-
-- `GET /api/v1/health`
-- `GET /api/v1/system/foundation`
-- `POST /api/v1/auth/signup`
-- `POST /api/v1/auth/login`
-- `GET /api/v1/auth/session`
-- `POST /api/v1/auth/password-reset/request`
-- `POST /api/v1/auth/password-reset/confirm`
-- `POST /api/v1/auth/email-verification/request`
-- `POST /api/v1/auth/email-verification/confirm`
-- `GET /api/v1/users/me`
-- `PATCH /api/v1/users/me`
-- `GET /api/v1/goals/current`
-- `PUT /api/v1/goals/current`
-- `GET /api/v1/preferences`
-- `PUT /api/v1/preferences`
-- `GET /api/v1/foods/search?q=`
-- `GET /api/v1/foods/{food_id}`
-- `GET /api/v1/meals?date=YYYY-MM-DD`
-- `POST /api/v1/meals/entries`
-- `PATCH /api/v1/meals/entries/{entry_id}`
-- `DELETE /api/v1/meals/entries/{entry_id}`
-- `GET /api/v1/nutrition/overview?range=day&date=YYYY-MM-DD`
-- `GET /api/v1/nutrition/macro/{macro_type}?range=day&date=YYYY-MM-DD`
-- `GET /api/v1/progress/overview`
-- `GET /api/v1/progress/weight`
-- `POST /api/v1/progress/weight`
-- `GET /api/v1/progress/measurements`
-- `POST /api/v1/progress/measurements`
-
-## Demo Data Notes
-
-Food search and food detail use a small seeded demo dataset when the foods table is empty. That keeps local demos predictable without introducing a large fake dataset.
-
-Good demo search terms include:
-
-- `yogurt`
-- `chicken`
-- `rice`
-- `banana`
-- `oats`
-- `salmon`
+See the root [DEPLOYMENT.md](../DEPLOYMENT.md) for the ordered AWS staging steps.
 
 ## Local Verification
 
@@ -143,7 +105,7 @@ With the backend virtual environment active:
 pytest -q
 ```
 
-Focused smoke checks that are especially useful before demos:
+Focused smoke checks that are especially useful before demos or staging rollout:
 
 - auth signup/login/session restore
 - forgot-password request and reset flow
@@ -155,6 +117,6 @@ Focused smoke checks that are especially useful before demos:
 
 ## Known Limits
 
-- this backend is ready for local demos and auth hardening work, not full production deployment
-- release packaging, hosted deployment, observability, and stronger secret management are still future work
+- this backend is ready for demos and a simple staging rollout, not full production operations
+- release automation, observability, and secret-manager integration are still future work
 - refresh-token rotation, email delivery, and full session-management infrastructure are still future work
