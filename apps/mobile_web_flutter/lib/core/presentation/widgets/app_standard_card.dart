@@ -16,12 +16,11 @@ class AppStandardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = AppTheme.of(context);
-
     return Card(
       color: color,
       child: Padding(
-        padding: padding ?? EdgeInsets.all(tokens.pagePadding),
+        padding:
+            padding ?? EdgeInsets.all(AppTheme.adaptivePagePadding(context)),
         child: child,
       ),
     );

@@ -19,22 +19,22 @@ class AppThemeTokens extends ThemeExtension<AppThemeTokens> {
   static const fallback = AppThemeTokens(
     contentMaxWidth: 960,
     cardRadius: 28,
-    pagePadding: 24,
-    sectionSpacing: 24,
+    pagePadding: 20,
+    sectionSpacing: 20,
   );
 
   static const light = AppThemeTokens(
     contentMaxWidth: 960,
     cardRadius: 28,
-    pagePadding: 24,
-    sectionSpacing: 24,
+    pagePadding: 20,
+    sectionSpacing: 20,
   );
 
   static const dark = AppThemeTokens(
     contentMaxWidth: 960,
     cardRadius: 28,
-    pagePadding: 24,
-    sectionSpacing: 24,
+    pagePadding: 20,
+    sectionSpacing: 20,
   );
 
   @override
@@ -75,6 +75,34 @@ class AppTheme {
         AppThemeTokens.fallback;
   }
 
+  static bool isCompactWidth(BuildContext context) {
+    return MediaQuery.sizeOf(context).width < 600;
+  }
+
+  static double adaptivePagePadding(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final tokens = of(context);
+    if (width < 380) {
+      return 16;
+    }
+    if (width < 600) {
+      return 18;
+    }
+    return tokens.pagePadding;
+  }
+
+  static double adaptiveSectionSpacing(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final tokens = of(context);
+    if (width < 380) {
+      return 16;
+    }
+    if (width < 600) {
+      return 18;
+    }
+    return tokens.sectionSpacing;
+  }
+
   static ThemeData light() => _buildTheme(Brightness.light);
 
   static ThemeData dark() => _buildTheme(Brightness.dark);
@@ -84,12 +112,13 @@ class AppTheme {
       seedColor: const Color(0xFF136F63),
       brightness: brightness,
     );
-    final tokens =
-        brightness == Brightness.light ? AppThemeTokens.light : AppThemeTokens.dark;
+    final tokens = brightness == Brightness.light
+        ? AppThemeTokens.light
+        : AppThemeTokens.dark;
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
       borderSide: BorderSide(
-        color: colorScheme.outlineVariant.withOpacity(0.5),
+        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
       ),
     );
 
@@ -115,15 +144,15 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(tokens.cardRadius),
           side: BorderSide(
-            color: colorScheme.outlineVariant.withOpacity(0.45),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.45),
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: brightness == Brightness.light
-            ? Colors.white.withOpacity(0.82)
-            : colorScheme.surface.withOpacity(0.6),
+            ? Colors.white.withValues(alpha: 0.82)
+            : colorScheme.surface.withValues(alpha: 0.6),
         border: inputBorder,
         enabledBorder: inputBorder,
         focusedBorder: inputBorder.copyWith(
@@ -149,7 +178,7 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.secondaryContainer,
-        labelTextStyle: MaterialStatePropertyAll(
+        labelTextStyle: WidgetStatePropertyAll(
           TextStyle(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.w600,

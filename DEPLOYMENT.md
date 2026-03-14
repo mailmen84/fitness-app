@@ -1,37 +1,42 @@
 # Deployment Guide
 
-This guide describes the preferred AWS staging shape for the current `fitness-app` architecture.
+This guide describes the current secondary deployment path for the `fitness-app` repository.
 
-The repository is a hardened, demo-ready authenticated MVP. The goal here is not full production infrastructure. The goal is the simplest realistic AWS staging environment that one developer can build, run, and demo.
+Important direction note:
 
-## Preferred AWS Staging Architecture
+- the primary product target is now an installable phone app, with Android first and iPhone-ready architecture second
+- web deployment is still useful for demos, QA, admin access, and secondary access paths
+- this document remains valid, but it no longer defines the primary product goal
+
+The repository is a hardened authenticated MVP. The web staging goal here is still low-complexity support for demos and secondary access, not a return to a web-first roadmap.
+
+## Secondary AWS Staging Architecture
 
 ### Summary
 
-Use this shape first:
+If a lightweight staging website is still needed, use this shape first:
 
 - frontend: Flutter web build served as static files from one Amazon Lightsail Linux instance
 - backend: FastAPI running on that same Lightsail instance in Docker behind Nginx
 - database: one Amazon Lightsail managed PostgreSQL database in the same region
 - networking: one public staging hostname pointing at a Lightsail static IP
 
-This is the recommended default because:
+This remains the recommended secondary web staging shape because:
 
 - it uses the fewest AWS resources
-- it avoids frontend/backend cross-origin complexity by keeping the app same-origin
+- it avoids frontend/backend cross-origin complexity by keeping the staged web app same-origin
 - it works with the repo as it exists today
 - it is easier to understand and recover when one developer owns the whole staging environment
 
-### Why not split the frontend and backend yet?
+### Why this is now secondary
 
-A split setup is possible later, but it adds more moving parts immediately:
+This setup is still useful, but it is no longer the main product-delivery goal.
 
-- separate frontend hosting
-- explicit cross-origin browser traffic
-- more CORS surface area
-- more places to debug staged auth issues
+The main product path is now:
 
-For the current MVP, one Lightsail instance plus one Lightsail PostgreSQL database is the cleaner staging path.
+- Android packaging and install readiness first
+- iPhone-ready packaging and polish second
+- hosted web access only after that as a supporting path
 
 ## AWS Resource Layout
 
@@ -94,6 +99,7 @@ These are the key staging values for the backend container.
 - `BACKEND_DATABASE_ECHO=false`
 - `BACKEND_CORS_ALLOWED_ORIGINS=["https://staging.example.com"]`
 - `BACKEND_CORS_ALLOW_CREDENTIALS=true`
+- `BACKEND_RUN_MIGRATIONS=1`
 
 ### Recommended auth-token values
 
@@ -101,19 +107,13 @@ These are the key staging values for the backend container.
 - `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS=3600`
 - `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS=86400`
 
-### Container-start helper
-
-- `BACKEND_RUN_MIGRATIONS=1`
-
-That variable is used by `backend/entrypoint.sh` so the container runs `alembic upgrade head` before starting Uvicorn.
-
 ### Frontend build-time value
 
-Build the Flutter app with:
+Build the Flutter web app with:
 
 - `API_BASE_URL=https://staging.example.com`
 
-Because the frontend and backend are served from the same public origin in this staging shape, the Flutter client can call `/api/v1/...` through that single staging host.
+Because the staged frontend and backend are served from the same public origin in this web-staging shape, the Flutter client can call `/api/v1/...` through that single staging host.
 
 ## Required CORS, API Base URL, And Auth Settings
 
@@ -129,7 +129,7 @@ flutter build web --release --dart-define=API_BASE_URL=https://staging.example.c
 
 ### CORS
 
-Even though the app is same-origin in this staging design, keep backend CORS explicit for the public staging URL.
+Even though the staged web app is same-origin in this design, keep backend CORS explicit for the public staging URL.
 
 Recommended value:
 
@@ -137,17 +137,9 @@ Recommended value:
 BACKEND_CORS_ALLOWED_ORIGINS=["https://staging.example.com"]
 ```
 
-Do not rely on localhost defaults in staging.
-
 ### Auth secret
 
 Use a unique staging secret and never reuse the sample development secret from `.env.example`.
-
-Recommended rule:
-
-- generate one long random secret for staging
-- keep it outside the repo
-- do not share it across environments
 
 ## Deployment Steps In Order
 
@@ -183,25 +175,6 @@ git clone <your-repo-url> fitness-app
 
 Create a staging `.env` on the instance, for example at `/opt/fitness-app/.env`.
 
-At minimum include:
-
-```text
-BACKEND_ENVIRONMENT=staging
-BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
-BACKEND_DATABASE_URL=postgresql+asyncpg://USER:PASSWORD@DB_HOST:5432/fitness_app
-BACKEND_ALEMBIC_DATABASE_URL=postgresql+psycopg://USER:PASSWORD@DB_HOST:5432/fitness_app
-BACKEND_AUTH_SECRET_KEY=replace-with-a-long-random-secret
-BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS=43200
-BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS=3600
-BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS=86400
-BACKEND_DOCS_ENABLED=false
-BACKEND_DATABASE_ECHO=false
-BACKEND_CORS_ALLOWED_ORIGINS=["https://staging.example.com"]
-BACKEND_CORS_ALLOW_CREDENTIALS=true
-BACKEND_RUN_MIGRATIONS=1
-```
-
 ### 4. Build the Flutter web app for staging
 
 From your local machine or build machine:
@@ -229,17 +202,6 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-Before reloading Nginx:
-
-- replace `staging.example.com` with the real host
-- confirm the web root points to `/var/www/fitness-app/web`
-
-This gives you:
-
-- static frontend hosting at `/`
-- SPA fallback to `index.html`
-- backend reverse proxy from `/api/` to `127.0.0.1:8000`
-
 ### 6. Build and run the backend container
 
 On the Lightsail instance:
@@ -256,19 +218,11 @@ docker run -d \
   fitness-app-backend
 ```
 
-That container will:
-
-- read the backend env vars
-- run `alembic upgrade head` if `BACKEND_RUN_MIGRATIONS=1`
-- start Uvicorn on port 8000
-
 ### 7. Point DNS to the staging instance
 
 Point `staging.example.com` to the Lightsail static IP.
 
-If you are not using a custom domain yet, you can temporarily build the frontend against the instance public URL instead, but a real staging hostname is cleaner.
-
-### 8. Smoke test the deployed app
+### 8. Smoke test the staged web app
 
 Verify at minimum:
 
@@ -281,40 +235,9 @@ Verify at minimum:
 - Progress save flows work
 - More profile/goals/preferences saves work
 
-## Operational Notes For This Staging Shape
-
-### HTTPS
-
-For a true shared staging environment, add HTTPS before wider demos.
-
-Simple options:
-
-- terminate TLS on the instance with your preferred web-server setup
-- or add another AWS layer later if you decide you want managed TLS in front of the instance
-
-This guide keeps TLS automation out of scope because the goal is a low-complexity MVP staging plan, not full production infrastructure.
-
-### Deployment updates
-
-For the first staging setup, the simplest update flow is manual:
-
-1. pull the latest code on the instance
-2. rebuild the Flutter web bundle
-3. copy the web bundle to the web root
-4. rebuild and restart the backend container
-5. run a short smoke pass
-
-### Backups and failure tolerance
-
-For staging, at minimum:
-
-- enable Lightsail database backups if available for your selected database plan
-- keep a copy of the staging `.env` outside the instance
-- keep the Docker and Nginx commands documented for re-provisioning
-
 ## What Still Remains Before Real Production Deployment
 
-This AWS staging plan is intentionally simple. It does not yet cover:
+This secondary web staging plan is intentionally simple. It does not yet cover:
 
 - CI/CD pipelines for frontend and backend deployment
 - infrastructure-as-code
@@ -324,3 +247,5 @@ This AWS staging plan is intentionally simple. It does not yet cover:
 - refresh tokens or server-side session revocation
 - observability, alerting, uptime checks, or centralized log shipping
 - blue/green deploys, zero-downtime migration workflows, or autoscaling
+
+It also does not replace the new primary milestone, which is mobile-native readiness and phone packaging.

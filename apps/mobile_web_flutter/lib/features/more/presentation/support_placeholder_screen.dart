@@ -71,7 +71,7 @@ class SupportPlaceholderScreen extends StatelessWidget {
                 SelectableText(Environment.defaultApiBaseUrl),
                 const SizedBox(height: 16),
                 Text(
-                  'The current focus is a simple AWS staging deployment plan for the authenticated MVP.',
+                  'The current focus is mobile-native readiness and packaging for the authenticated MVP.',
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -82,6 +82,7 @@ class SupportPlaceholderScreen extends StatelessWidget {
     );
   }
 }
+
 
 
 

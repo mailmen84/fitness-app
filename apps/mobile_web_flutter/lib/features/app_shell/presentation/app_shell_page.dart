@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/config/environment.dart';
 import '../../../core/presentation/widgets/widgets.dart';
+import '../../../core/theme/app_theme.dart';
 import '../application/app_shell_destinations.dart';
 
 class AppShellPage extends ConsumerWidget {
@@ -18,14 +19,21 @@ class AppShellPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final destinations = ref.watch(appShellDestinationsProvider);
     final currentDestination = destinations[navigationShell.currentIndex];
+    final isCompactWidth = AppTheme.isCompactWidth(context);
+    final width = MediaQuery.sizeOf(context).width;
 
     return AppScaffold(
       appBar: AppTopAppBar(
-        title: '${Environment.appName} - ${currentDestination.label}',
+        title: isCompactWidth
+            ? currentDestination.label
+            : '${Environment.appName} - ${currentDestination.label}',
         automaticallyImplyLeading: false,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
+        labelBehavior: width < 420
+            ? NavigationDestinationLabelBehavior.onlyShowSelected
+            : NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [
           for (final destination in destinations)
             NavigationDestination(

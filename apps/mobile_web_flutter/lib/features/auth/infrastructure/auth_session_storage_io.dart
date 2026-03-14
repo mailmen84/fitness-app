@@ -1,7 +1,35 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'auth_session_storage_base.dart';
+
+class _SecureAuthSessionStorage implements AuthSessionStorage {
+  static const _accessTokenKey = 'fitness_app_auth_access_token';
+  static final FlutterSecureStorage _storage = FlutterSecureStorage(
+    aOptions: const AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: const IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
+
+  @override
+  Future<String?> readAccessToken() async {
+    final accessToken = await _storage.read(key: _accessTokenKey);
+    return accessToken?.trim().isEmpty ?? true ? null : accessToken;
+  }
+
+  @override
+  Future<void> writeAccessToken(String accessToken) {
+    return _storage.write(key: _accessTokenKey, value: accessToken);
+  }
+
+  @override
+  Future<void> clear() {
+    return _storage.delete(key: _accessTokenKey);
+  }
+}
 
 class _FileAuthSessionStorage implements AuthSessionStorage {
   static const _fileName = 'auth_session.json';
@@ -65,5 +93,8 @@ class _FileAuthSessionStorage implements AuthSessionStorage {
 }
 
 AuthSessionStorage createPlatformAuthSessionStorage() {
+  if (Platform.isAndroid || Platform.isIOS) {
+    return _SecureAuthSessionStorage();
+  }
   return _FileAuthSessionStorage();
 }

@@ -1,6 +1,6 @@
 # fitness-app
 
-`fitness-app` is a cross-platform nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The repository now has a hardened, demo-ready authenticated MVP across Today, Add, Nutrition, Progress, and More/settings.
+`fitness-app` is a mobile-first nutrition and fitness tracking monorepo with a Flutter client and a FastAPI backend. The primary product target is a real installable phone app, with Android first, iPhone-ready architecture second, and web/desktop only as secondary access paths.
 
 ## Non-Negotiable Repository Rule
 
@@ -12,9 +12,19 @@ Do not create a new root folder, do not create a nested `fitness-app` folder, an
 
 ## Current Phase
 
-Current phase: simple AWS staging deployment plan.
+Current phase: mobile-native readiness and packaging.
 
-This phase focuses on choosing the lowest-complexity realistic AWS staging shape for the current MVP, documenting the exact run and deploy steps, and keeping the path practical for one developer.
+This phase focuses on correcting the project toward real phone-app delivery, tightening mobile UX and session behavior, and preparing the app for Android packaging and installation without broad rewrites or unrelated new features.
+
+## Primary Product Direction
+
+The product direction is now explicit:
+
+- primary target: installable Android app
+- secondary target: iPhone-ready architecture and packaging follow-up
+- tertiary target: web and desktop remain supported, but they are not the main delivery goal
+
+Existing web staging and browser support still matter for demos and secondary access, but they no longer define the main product direction.
 
 ## Current MVP Scope
 
@@ -30,6 +40,9 @@ Working today:
 - Progress overview, weight logging, and measurement logging
 - More/Profile home plus profile, goals, and preferences settings
 - seeded demo foods for search and meal logging demos
+- generated Android and iOS runners already exist in the Flutter project
+- Android and iOS app identity now uses `Fitness App` and `com.fitnessapp.mobile` instead of stock Flutter placeholder values
+- phone session restore now uses secure storage on Android and iOS
 
 Still intentionally not product-complete:
 
@@ -38,11 +51,11 @@ Still intentionally not product-complete:
 - verified-email enforcement across product features
 - social auth
 - barcode scanning, recipes, or saved multi-food meal templates
-- CI/CD, infrastructure-as-code, and full production infrastructure
+- release automation, CI/CD, and full production infrastructure
 
 ## Tech Stack
 
-- Frontend: Flutter, Material 3, Riverpod, go_router, `http`
+- Frontend: Flutter, Material 3, Riverpod, go_router, `http`, `flutter_secure_storage`
 - Backend: FastAPI, Pydantic, SQLAlchemy, Alembic
 - Database: PostgreSQL
 - Local infrastructure: Docker Compose for PostgreSQL
@@ -54,8 +67,11 @@ Still intentionally not product-complete:
 fitness-app/
   apps/
     mobile_web_flutter/
+      android/
+      ios/
       lib/
       test/
+      web/
   backend/
     app/
     alembic/
@@ -70,6 +86,17 @@ fitness-app/
   CODEX_CONTEXT.md
   NEXT_TASK.md
 ```
+
+## Current Mobile Gaps
+
+Before this feels like a truly installable phone app, the current repo still has these concrete gaps:
+
+- a real Android release keystore still needs to be created locally and wired through `apps/mobile_web_flutter/android/key.properties`; the repo now supports that flow, but it cannot ship secrets
+- launcher icons are still the default generated Flutter assets, so the packaged app still looks unfinished on a phone home screen
+- Android local/demo networking currently relies on `android:usesCleartextTraffic="true"` for non-HTTPS backends; production-ready mobile delivery should move to HTTPS and tighter network policy
+- iOS naming is corrected, but iPhone signing, transport policy, and physical-device validation still need their own follow-up pass
+- some denser secondary forms and detail screens still need a final phone-sized touch and keyboard polish pass
+- the Android APK build/install flow is now documented, but it still needs a clean emulator or real-device smoke pass end to end
 
 ## Local Quick Start
 
@@ -99,13 +126,7 @@ alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Local backend URLs:
-
-- API root: `http://localhost:8000/api/v1`
-- Swagger docs: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-### 4. Run the Flutter app
+### 4. Run the Flutter app for phone work
 
 If the platform runners have not been generated yet, hydrate them first:
 
@@ -114,21 +135,43 @@ cd apps\mobile_web_flutter
 flutter create . --platforms=android,ios,web,windows,linux,macos
 ```
 
-Then install packages, run tests, and start the web app:
+Then install packages and prefer device-oriented runs first:
 
 ```powershell
 cd apps\mobile_web_flutter
 flutter pub get
 flutter test
+flutter run -d android --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
+
+For Chrome or other secondary access paths:
+
+```powershell
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 ```
 
-`API_BASE_URL` can be either:
+`API_BASE_URL` can be either a backend origin like `http://localhost:8000` or the full API prefix like `http://localhost:8000/api/v1`.
 
-- a backend origin, for example `http://localhost:8000`
-- or the full API prefix, for example `http://localhost:8000/api/v1`
+### 5. Build a local Android APK
 
-The Flutter client tolerates both forms, but for staging it is better to set `API_BASE_URL` explicitly to the public staging URL.
+When you want a cleaner release-style APK path, create a local signing config first:
+
+```powershell
+cd apps\mobile_web_flutter
+Copy-Item android\key.properties.example android\key.properties
+New-Item -ItemType Directory -Force android\keystore | Out-Null
+keytool -genkeypair -v -keystore android\keystore\upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Then build and install:
+
+```powershell
+cd apps\mobile_web_flutter
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com
+adb install -r build\app\outputs\flutter-apk\app-release.apk
+```
+
+If `android\key.properties` is missing, release builds still fall back to the debug key so local smoke work can continue, but that is only a temporary developer path and not a clean distribution setup.
 
 ## Environment Notes
 
@@ -136,17 +179,17 @@ The Flutter client tolerates both forms, but for staging it is better to set `AP
 
 The root `.env` file configures the backend. The most relevant settings are:
 
-- `BACKEND_ENVIRONMENT`: use `development` locally and `staging` on AWS staging
-- `BACKEND_DATABASE_URL`: async SQLAlchemy database URL used by the app
-- `BACKEND_ALEMBIC_DATABASE_URL`: sync URL for Alembic migrations
-- `BACKEND_AUTH_SECRET_KEY`: signing secret for bearer access tokens; use a unique 32+ character value outside local development
-- `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`: access-token lifetime in seconds
-- `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`: password-reset token lifetime in seconds
-- `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`: email-verification token lifetime in seconds
-- `BACKEND_DOCS_ENABLED`: keep this on locally; usually disable it on staging unless you intentionally want docs exposed
-- `BACKEND_CORS_ALLOWED_ORIGINS`: explicit staging frontend origin
-- `BACKEND_CORS_ALLOW_ORIGIN_REGEX`: leave unset unless you truly need preview hosts
-- `BACKEND_RUN_MIGRATIONS`: container-start helper used by `backend/entrypoint.sh`
+- `BACKEND_ENVIRONMENT`
+- `BACKEND_DATABASE_URL`
+- `BACKEND_ALEMBIC_DATABASE_URL`
+- `BACKEND_AUTH_SECRET_KEY`
+- `BACKEND_AUTH_ACCESS_TOKEN_EXPIRE_SECONDS`
+- `BACKEND_AUTH_PASSWORD_RESET_TOKEN_EXPIRE_SECONDS`
+- `BACKEND_AUTH_EMAIL_VERIFICATION_TOKEN_EXPIRE_SECONDS`
+- `BACKEND_DOCS_ENABLED`
+- `BACKEND_CORS_ALLOWED_ORIGINS`
+- `BACKEND_CORS_ALLOW_ORIGIN_REGEX`
+- `BACKEND_RUN_MIGRATIONS`
 
 ### Frontend config
 
@@ -156,39 +199,13 @@ Current runtime define:
 
 - `API_BASE_URL`
 
-For the recommended AWS staging setup, set `API_BASE_URL` to the public staging origin, for example `https://staging.example.com`.
+For Android emulator work, `10.0.2.2` is usually the local host bridge. For web, `localhost` remains fine. Hosted web still exists as a secondary path, not the main product target.
 
-## Recommended AWS Staging Shape
+## Secondary Web/Deployment Path
 
-The current simplest realistic AWS staging architecture for this repo is:
+Web staging and hosted browser access remain useful for demos, QA, and secondary access.
 
-- one Amazon Lightsail Linux instance for the Flutter web build and reverse proxy
-- the FastAPI backend running on that same instance in Docker using the existing backend Dockerfile
-- one Amazon Lightsail managed PostgreSQL database in the same AWS region
-- one public staging hostname, ideally backed by a Lightsail static IP
-
-Why this is the preferred staging shape:
-
-- it is the fewest AWS resources for the current MVP
-- it avoids cross-origin frontend/backend complexity by keeping the app same-origin
-- it fits the existing backend Dockerfile and the Flutter web build flow
-- it is practical for one developer without introducing container orchestration or CI/CD yet
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for the exact AWS staging architecture and ordered deployment steps.
-
-## Demo Notes
-
-The repository is intentionally lightweight for demos:
-
-- food search auto-seeds a small demo dataset the first time food search or food detail is used
-- good demo queries include `chicken`, `rice`, `banana`, `oats`, `salmon`, and `yogurt`
-- meals, goals, preferences, progress entries, and onboarding choices are created through the app per signed-in account
-- there is no large fake production dataset in the repo
-
-If you need to reset an auth session during demos:
-
-- web stores the access token in browser `localStorage`
-- desktop and other IO platforms store it in a local `fitness-app/auth_session.json` file under the platform app-data directory
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the AWS staging plan, but treat it as a secondary delivery path behind the primary mobile-native goal.
 
 ## Local Verification
 
@@ -206,16 +223,17 @@ cd apps\mobile_web_flutter
 flutter test
 ```
 
-Suggested manual smoke pass after startup or staging deployment:
+Suggested manual smoke pass for the current mobile-first milestone:
 
-- signup
-- login after sign-out
-- forgot-password request and reset flow
-- onboarding completion
-- Today meal logging
-- Nutrition overview
-- Progress add flows
-- More profile/goals/preferences save flows
+- Android emulator or physical-device install and first launch
+- signup or login on a phone-sized screen
+- onboarding completion on a phone-sized screen
+- Today meal logging on phone
+- Nutrition overview on phone
+- Progress save flows on phone
+- More profile/goals/preferences save flows on phone
+- background the app, relaunch it, and confirm session restore on phone
+- sign out, relaunch, and confirm the logged-out route guard state
 
 ## Documentation Files
 
@@ -228,7 +246,7 @@ These root files are the current source of truth for repository direction:
 
 ## Next Likely Milestone
 
-After the simple AWS staging deployment plan, the next likely milestone should be first staging execution on AWS plus post-deployment stabilization.
+After mobile-native readiness and packaging, the next likely milestone should be Android install validation and first packaged-device smoke passes.
 
 ## Final Guardrail
 

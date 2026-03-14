@@ -20,9 +20,19 @@ class AppScaffold extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
 
+  void _dismissKeyboard() {
+    final currentFocus = FocusManager.instance.primaryFocus;
+    if (currentFocus == null || !currentFocus.hasFocus) {
+      return;
+    }
+    currentFocus.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = AppTheme.of(context);
+    final effectivePadding =
+        padding ?? EdgeInsets.all(AppTheme.adaptivePagePadding(context));
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -31,13 +41,17 @@ class AppScaffold extends StatelessWidget {
       floatingActionButton: floatingActionButton,
       body: SafeArea(
         top: false,
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: tokens.contentMaxWidth),
-            child: Padding(
-              padding: padding ?? EdgeInsets.all(tokens.pagePadding),
-              child: body,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _dismissKeyboard,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: tokens.contentMaxWidth),
+              child: Padding(
+                padding: effectivePadding,
+                child: body,
+              ),
             ),
           ),
         ),

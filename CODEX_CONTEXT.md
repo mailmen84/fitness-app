@@ -1,6 +1,6 @@
 # CODEX_CONTEXT
 
-This file is the Codex-oriented source of truth for the repository state as of March 12, 2026.
+This file is the Codex-oriented source of truth for the repository state as of March 14, 2026.
 
 ## Project Identity
 
@@ -8,8 +8,10 @@ Project: `fitness-app`
 
 Purpose:
 
-- build and maintain a Flutter client plus FastAPI backend for a nutrition and fitness tracking product
-- move in vertical slices without drifting into unrequested product scope
+- build and maintain a mobile-first Flutter client plus FastAPI backend for a nutrition and fitness tracking product
+- optimize first for a real installable Android app
+- keep the architecture iPhone-ready as the second platform priority
+- keep web and desktop available only as secondary access paths
 - preserve a clean monorepo structure and predictable engineering handoff state
 
 ## Repository Root
@@ -33,7 +35,8 @@ Hard rule:
 - keep state in Riverpod
 - keep UI logic thin; move orchestration into controllers, providers, and repositories
 - reuse the existing theme and shared widgets before creating new UI primitives
-- keep the UI clean, minimal, and practical
+- prefer phone-first UX decisions before web or desktop convenience
+- keep web and desktop support secondary unless the active milestone explicitly requires them
 - do not add product flows beyond the active milestone unless explicitly requested
 
 ## Backend Architecture Rules
@@ -135,19 +138,26 @@ These milestones are already present in the repository state:
 - startup, handoff, and demo-readiness docs are more explicit across the repo
 
 14. Simple AWS staging deployment plan
-- the repo now documents a single preferred AWS staging shape for one developer
+- the repo documents a single preferred AWS staging shape for one developer
 - backend container startup and same-origin reverse-proxy support files exist for a Lightsail-style deployment
 - the staging plan stays lightweight and avoids broad infrastructure automation
 
+15. Product direction correction to mobile-first delivery
+- the primary product target is now a real installable phone app
+- Android is the first packaging target
+- iPhone-readiness is the second platform priority
+- web and desktop remain supported only as secondary access paths
+
 ## Current Phase
 
-Current phase: simple AWS staging deployment plan.
+Current phase: mobile-native readiness and packaging.
 
 Status:
 
-- the project is a hardened, demo-ready authenticated MVP
-- the active work is to define the simplest realistic AWS staging deployment path for that MVP
-- this phase is not for full production infrastructure automation or unrelated product modules
+- the project is a hardened authenticated MVP with working Android and iOS runners present
+- the active work is to close the gap between that MVP and a true installable Android-first phone app
+- basic Android/iOS package identity, phone-secure session storage, and a first compact-width shell pass are now in place
+- web and desktop still exist, but they no longer define the main product direction
 
 ## What Already Exists
 
@@ -162,7 +172,11 @@ Status:
 - More/Profile home plus profile, goals, preferences, support, and PED routes
 - shared API client using bearer access tokens
 - authenticated route guarding and session restore
-- Flutter web build path suitable for static hosting or same-origin staging behind a reverse proxy
+- Android and iOS project runners already present in the Flutter app
+- Android and iOS app identity now uses `Fitness App` / `com.fitnessapp.mobile` instead of Flutter placeholder defaults
+- Android and iOS session restore now uses secure token storage on phones and file storage on desktop-style IO platforms
+- shared shell spacing, titles, and bottom navigation now have a first compact-width pass for smaller screens
+- web build path still available for secondary access and demos
 
 ### Backend
 
@@ -177,15 +191,27 @@ Status:
 
 ## Current Functional Focus
 
-The active focus is a simple AWS staging deployment plan.
+The active focus is mobile-native readiness and packaging.
 
 That means current work should:
 
-- keep the staging shape practical for one developer
-- prefer Lightsail-oriented AWS components when they keep complexity down
-- reduce cross-origin and handoff complexity where practical
-- document exact environment, build, and deployment steps for the existing MVP
-- avoid broad rewrites, unrelated product work, or full infrastructure automation
+- prioritize phone-sized UX and installable-app behavior first
+- review navigation, layout density, touch targets, keyboard handling, and mobile session behavior screen by screen
+- make Android packaging and APK install readiness explicit
+- keep iPhone architecture and packaging readiness close behind Android work
+- treat web and desktop as secondary access paths unless the milestone explicitly needs them
+- avoid broad rewrites, unrelated product work, or new feature-module expansion
+
+## Current Mobile Gaps
+
+The current repo still has these concrete mobile-readiness gaps:
+
+- a real Android release keystore still needs to be created locally and referenced from `android/key.properties`
+- launcher icons are still the default generated Flutter assets
+- Android local/demo release traffic still relies on temporary cleartext support for non-HTTPS backends
+- iPhone signing, transport policy, and device-install validation still need their own follow-up pass
+- some denser secondary forms and detail screens still need a final small-screen touch and keyboard polish pass
+- the APK build/install flow is now documented, but it still needs a clean emulator or physical-device smoke pass
 
 ## Current Auth Rule
 
@@ -203,6 +229,7 @@ Meaning:
 
 Do not add these on your own:
 
+- broad web-first pivots that pull the product away from phone delivery
 - full cloud infrastructure automation or vendor-specific production stacks
 - refresh-token rotation or full server-side session revocation systems
 - outbound email delivery infrastructure or broad notification systems
@@ -215,4 +242,4 @@ Do not add these on your own:
 
 ## Expected Next Step After This Phase
 
-After the simple AWS staging deployment plan, the next likely milestone should be executing the first AWS staging deployment and then stabilizing it with smoke-pass fixes.
+After mobile-native readiness and packaging, the next likely milestone should be Android install validation and phone-device stabilization.
