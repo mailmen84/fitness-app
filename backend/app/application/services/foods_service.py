@@ -2,7 +2,15 @@ from decimal import Decimal
 from uuid import UUID
 
 from app.domain.foods.models import Food, FoodNutrient
-from app.domain.foods.schemas import FoodDetailRead, FoodNutrientRead, FoodSearchResultRead, FoodSearchResultsRead
+from app.domain.foods.schemas import (
+    FoodCreateRequest,
+    FoodDetailRead,
+    FoodNutrientRead,
+    FoodSearchResultRead,
+    FoodSearchResultsRead,
+    OpenFoodFactsLookup,
+)
+from app.infrastructure.external.openfoodfacts_client import OpenFoodFactsClient
 from app.infrastructure.persistence.repositories.foods_repository import FoodsRepository
 
 _ZERO = Decimal('0.00')
@@ -136,8 +144,13 @@ _SEED_FOODS = (
 
 
 class FoodsService:
-    def __init__(self, foods_repository: FoodsRepository):
+    def __init__(
+        self,
+        foods_repository: FoodsRepository,
+        openfoodfacts_client: OpenFoodFactsClient | None = None,
+    ):
         self.foods_repository = foods_repository
+        self.openfoodfacts_client = openfoodfacts_client or OpenFoodFactsClient()
 
     @staticmethod
     def _quantize(value: Decimal) -> Decimal:
@@ -254,4 +267,79 @@ class FoodsService:
         if food is None:
             return None
         return self._to_food_detail(food)
+
+    async def get_food_by_barcode(self, barcode: str) -> FoodDetailRead | None:
+        normalized = barcode.strip()
+        if not normalized:
+            return None
+        food = await self.foods_repository.get_food_by_barcode(normalized)
+        if food is None:
+            return None
+        return self._to_food_detail(food)
+
+    async def lookup_openfoodfacts(self, barcode: str) -> OpenFoodFactsLookup:
+        return await self.openfoodfacts_client.lookup(barcode)
+
+    async def create_food_from_request(self, payload: FoodCreateRequest) -> FoodDetailRead:
+        """Persist a new food. Used by manual create and the OFF review flow.
+
+        Raises ValueError('barcode_taken') if the barcode is already in the local DB.
+        """
+
+        normalized_barcode = payload.barcode.strip() if payload.barcode else None
+        if normalized_barcode == '':
+            normalized_barcode = None
+
+        if normalized_barcode is not None:
+            existing = await self.foods_repository.get_food_by_barcode(normalized_barcode)
+            if existing is not None:
+                raise ValueError('barcode_taken')
+
+        food = self.foods_repository.create_food(
+            name=payload.name.strip(),
+            brand=payload.brand.strip() if payload.brand else None,
+            barcode=normalized_barcode,
+            default_serving_amount=payload.default_serving_amount,
+            default_serving_unit=payload.default_serving_unit,
+            source=payload.source or 'user',
+            is_verified=False,
+        )
+        await self.foods_repository.flush()
+
+        # Always emit the four core macro rows, even when zero, so the detail
+        # screen renders consistently.
+        macro_rows = (
+            ('calories', 'Calories', payload.calories, 'kcal', 10),
+            ('protein', 'Protein', payload.protein, 'g', 20),
+            ('carbs', 'Carbs', payload.carbs, 'g', 30),
+            ('fat', 'Fat', payload.fat, 'g', 40),
+        )
+        for code, name, amount, unit, order in macro_rows:
+            self.foods_repository.create_food_nutrient(
+                food_id=food.id,
+                nutrient_code=code,
+                nutrient_name=name,
+                amount=amount,
+                unit=unit,
+                display_order=order,
+            )
+
+        next_order = 50
+        for nutrient in payload.extra_nutrients:
+            self.foods_repository.create_food_nutrient(
+                food_id=food.id,
+                nutrient_code=nutrient.code.strip().lower(),
+                nutrient_name=nutrient.name.strip(),
+                amount=nutrient.amount,
+                unit=nutrient.unit.strip(),
+                display_order=nutrient.display_order or next_order,
+            )
+            next_order += 10
+
+        await self.foods_repository.commit()
+
+        # Reload with relationships eager-loaded so the read schema serializes cleanly.
+        reloaded = await self.foods_repository.get_food(food.id)
+        assert reloaded is not None
+        return self._to_food_detail(reloaded)
 

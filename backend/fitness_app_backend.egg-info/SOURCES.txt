@@ -7,6 +7,7 @@ app/api/dependencies.py
 app/api/v1/__init__.py
 app/api/v1/router.py
 app/api/v1/endpoints/__init__.py
+app/api/v1/endpoints/auth.py
 app/api/v1/endpoints/foods.py
 app/api/v1/endpoints/goals.py
 app/api/v1/endpoints/health.py
@@ -18,6 +19,7 @@ app/api/v1/endpoints/system.py
 app/api/v1/endpoints/users.py
 app/application/__init__.py
 app/application/services/__init__.py
+app/application/services/auth_service.py
 app/application/services/foods_service.py
 app/application/services/goals_service.py
 app/application/services/health_service.py
@@ -29,7 +31,10 @@ app/application/services/system_service.py
 app/application/services/users_service.py
 app/core/__init__.py
 app/core/config.py
+app/core/security.py
 app/domain/__init__.py
+app/domain/auth/__init__.py
+app/domain/auth/schemas.py
 app/domain/foods/__init__.py
 app/domain/foods/models.py
 app/domain/foods/schemas.py
@@ -56,6 +61,8 @@ app/domain/users/__init__.py
 app/domain/users/models.py
 app/domain/users/schemas.py
 app/infrastructure/__init__.py
+app/infrastructure/external/__init__.py
+app/infrastructure/external/openfoodfacts_client.py
 app/infrastructure/persistence/__init__.py
 app/infrastructure/persistence/base.py
 app/infrastructure/persistence/database.py
@@ -74,10 +81,13 @@ fitness_app_backend.egg-info/dependency_links.txt
 fitness_app_backend.egg-info/requires.txt
 fitness_app_backend.egg-info/top_level.txt
 tests/test_account_settings.py
+tests/test_auth.py
+tests/test_config.py
 tests/test_foods.py
 tests/test_health.py
 tests/test_meal_entries.py
 tests/test_meals.py
 tests/test_nutrition.py
 tests/test_progress.py
+tests/test_security.py
 tests/test_system.py
