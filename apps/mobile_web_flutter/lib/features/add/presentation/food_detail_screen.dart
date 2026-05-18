@@ -154,7 +154,18 @@ class _FoodDetailScreenState extends ConsumerState<FoodDetailScreen> {
     if (!mounted) {
       return;
     }
-    context.go(AppRoutePaths.today);
+
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text('Added ${food.name} to ${flowState.mealSection.title}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    ref.read(mealLoggingFlowControllerProvider.notifier).clearSubmissionState();
+    context.go(AppRoutePaths.addSearch);
   }
 
   @override
