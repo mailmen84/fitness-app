@@ -118,6 +118,8 @@ class FakePreferencesService:
             week_starts_on='monday',
             daily_calorie_target=Decimal('2200.00'),
             daily_protein_target=Decimal('165.00'),
+            daily_carbs_target=Decimal('220.00'),
+            daily_fat_target=Decimal('70.00'),
             onboarding_completed=True,
         )
 
@@ -132,6 +134,8 @@ class FakePreferencesService:
             week_starts_on=payload.week_starts_on,
             daily_calorie_target=payload.daily_calorie_target,
             daily_protein_target=payload.daily_protein_target,
+            daily_carbs_target=payload.daily_carbs_target,
+            daily_fat_target=payload.daily_fat_target,
             onboarding_completed=payload.onboarding_completed,
         )
 
@@ -236,6 +240,8 @@ def test_preferences_routes_return_get_and_put_shapes() -> None:
             'week_starts_on': 'sunday',
             'daily_calorie_target': 2400,
             'daily_protein_target': 175,
+            'daily_carbs_target': 240,
+            'daily_fat_target': 80,
             'onboarding_completed': True,
         },
     )
@@ -243,8 +249,14 @@ def test_preferences_routes_return_get_and_put_shapes() -> None:
     app.dependency_overrides.clear()
 
     assert read_response.status_code == 200
-    assert read_response.json()['timezone'] == 'Europe/Dublin'
+    read_body = read_response.json()
+    assert read_body['timezone'] == 'Europe/Dublin'
+    assert read_body['daily_carbs_target'] in ('220', '220.00', 220)
+    assert read_body['daily_fat_target'] in ('70', '70.00', 70)
     assert put_response.status_code == 200
-    assert put_response.json()['unit_system'] == 'imperial'
-    assert put_response.json()['daily_protein_target'] in ('175', '175.00', 175)
+    put_body = put_response.json()
+    assert put_body['unit_system'] == 'imperial'
+    assert put_body['daily_protein_target'] in ('175', '175.00', 175)
+    assert put_body['daily_carbs_target'] in ('240', '240.00', 240)
+    assert put_body['daily_fat_target'] in ('80', '80.00', 80)
 

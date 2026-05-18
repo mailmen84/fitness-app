@@ -23,6 +23,8 @@ class PreferencesRepository(BaseRepository):
         week_starts_on: str = 'monday',
         daily_calorie_target: Decimal | None = None,
         daily_protein_target: Decimal | None = None,
+        daily_carbs_target: Decimal | None = None,
+        daily_fat_target: Decimal | None = None,
         onboarding_completed: bool = False,
     ) -> Preference:
         preference = Preference(
@@ -32,6 +34,8 @@ class PreferencesRepository(BaseRepository):
             week_starts_on=week_starts_on,
             daily_calorie_target=daily_calorie_target,
             daily_protein_target=daily_protein_target,
+            daily_carbs_target=daily_carbs_target,
+            daily_fat_target=daily_fat_target,
             onboarding_completed=onboarding_completed,
         )
         self.add(preference)

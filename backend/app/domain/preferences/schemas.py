@@ -11,6 +11,8 @@ class PreferenceCreate(DomainSchema):
     week_starts_on: str = 'monday'
     daily_calorie_target: Decimal | None = None
     daily_protein_target: Decimal | None = None
+    daily_carbs_target: Decimal | None = None
+    daily_fat_target: Decimal | None = None
     onboarding_completed: bool = False
 
 
@@ -20,6 +22,8 @@ class PreferenceUpdate(DomainSchema):
     week_starts_on: str | None = None
     daily_calorie_target: Decimal | None = None
     daily_protein_target: Decimal | None = None
+    daily_carbs_target: Decimal | None = None
+    daily_fat_target: Decimal | None = None
     onboarding_completed: bool | None = None
 
 
@@ -29,6 +33,8 @@ class PreferencePutRequest(DomainSchema):
     week_starts_on: str = 'monday'
     daily_calorie_target: Decimal | None = None
     daily_protein_target: Decimal | None = None
+    daily_carbs_target: Decimal | None = None
+    daily_fat_target: Decimal | None = None
     onboarding_completed: bool = False
 
 
@@ -39,4 +45,6 @@ class PreferenceRead(TimestampedReadSchema):
     week_starts_on: str
     daily_calorie_target: Decimal | None = None
     daily_protein_target: Decimal | None = None
+    daily_carbs_target: Decimal | None = None
+    daily_fat_target: Decimal | None = None
     onboarding_completed: bool

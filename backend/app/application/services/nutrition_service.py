@@ -168,6 +168,16 @@ class NutritionService:
                 if preference is not None and preference.daily_protein_target is not None
                 else None
             ),
+            carbs=self._quantize_amount(
+                preference.daily_carbs_target * Decimal(day_count)
+                if preference is not None and preference.daily_carbs_target is not None
+                else None
+            ),
+            fat=self._quantize_amount(
+                preference.daily_fat_target * Decimal(day_count)
+                if preference is not None and preference.daily_fat_target is not None
+                else None
+            ),
         )
         goal_targets = self._nutrition_target_from_goal(goal, day_count)
 

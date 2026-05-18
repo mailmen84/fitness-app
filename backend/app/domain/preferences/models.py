@@ -23,6 +23,8 @@ class Preference(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     week_starts_on: Mapped[str] = mapped_column(String(16), default="monday", nullable=False)
     daily_calorie_target: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     daily_protein_target: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    daily_carbs_target: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    daily_fat_target: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user: Mapped[User] = relationship("User", back_populates="preferences")
