@@ -8,8 +8,16 @@ _LOCAL_ENVIRONMENTS = {'development', 'local', 'test'}
 _LOCAL_CORS_ALLOWED_ORIGINS = (
     'http://localhost',
     'http://127.0.0.1',
+    'http://10.0.2.2',
+    'http://10.0.3.2',
 )
-_LOCAL_CORS_ALLOW_ORIGIN_REGEX = r'^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$'
+# 10.0.2.2 is the host loopback alias used by the Android emulator and
+# 10.0.3.2 is the equivalent for Genymotion; both must be allowed so the
+# Flutter app running inside an emulator can call the local backend.
+_LOCAL_CORS_ALLOW_ORIGIN_REGEX = (
+    r'^https?://(localhost|127\.0\.0\.1|\[::1\]|10\.0\.2\.2|10\.0\.3\.2)'
+    r'(:\d+)?$'
+)
 
 
 class Settings(BaseSettings):
