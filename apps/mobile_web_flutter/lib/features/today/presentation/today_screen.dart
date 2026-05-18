@@ -6,6 +6,8 @@ import '../../../core/presentation/widgets/widgets.dart';
 import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../add/application/meal_logging_flow_controller.dart';
+import '../../more/application/preferences_controller.dart';
+import '../../more/domain/more_models.dart';
 import '../application/today_dashboard_controller.dart';
 import '../domain/today_dashboard.dart';
 import 'widgets/today_meal_card.dart';
@@ -274,14 +276,33 @@ class _TodayDashboardContent extends StatelessWidget {
   }
 }
 
-class _TodaySummaryGrid extends StatelessWidget {
+class _TodaySummaryGrid extends ConsumerWidget {
   const _TodaySummaryGrid({required this.data});
 
   final TodayDashboardData data;
 
+  String _caloriesHeadline(PreferenceData? prefs) {
+    final base = '${data.caloriesTotal.toStringAsFixed(0)} kcal';
+    final target = prefs?.dailyCalorieTarget;
+    if (target == null) {
+      return base;
+    }
+    return '$base / ${target.toStringAsFixed(0)} kcal';
+  }
+
+  String _macroValue(double current, double? target) {
+    final base = '${current.toStringAsFixed(0)}g';
+    if (target == null) {
+      return base;
+    }
+    return '$base / ${target.toStringAsFixed(0)}g';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = AppTheme.of(context);
+    final preferencesState = ref.watch(preferencesControllerProvider);
+    final preferences = preferencesState.asData?.value;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -298,9 +319,11 @@ class _TodaySummaryGrid extends StatelessWidget {
               width: cardWidth,
               child: _TodaySummaryCard(
                 title: 'Calories',
-                headline: '${data.caloriesTotal.toStringAsFixed(0)} kcal',
+                headline: _caloriesHeadline(preferences),
                 child: Text(
-                  'Total energy for the selected day across all meal sections.',
+                  preferences?.dailyCalorieTarget == null
+                      ? 'Total energy for the selected day across all meal sections.'
+                      : 'Total energy logged vs your daily calorie target.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
@@ -313,11 +336,29 @@ class _TodaySummaryGrid extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _MacroRow(label: 'Protein', value: '${data.proteinTotal.toStringAsFixed(0)}g'),
+                    _MacroRow(
+                      label: 'Protein',
+                      value: _macroValue(
+                        data.proteinTotal,
+                        preferences?.dailyProteinTarget,
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    _MacroRow(label: 'Carbs', value: '${data.carbsTotal.toStringAsFixed(0)}g'),
+                    _MacroRow(
+                      label: 'Carbs',
+                      value: _macroValue(
+                        data.carbsTotal,
+                        preferences?.dailyCarbsTarget,
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    _MacroRow(label: 'Fat', value: '${data.fatTotal.toStringAsFixed(0)}g'),
+                    _MacroRow(
+                      label: 'Fat',
+                      value: _macroValue(
+                        data.fatTotal,
+                        preferences?.dailyFatTarget,
+                      ),
+                    ),
                   ],
                 ),
               ),

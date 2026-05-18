@@ -95,6 +95,8 @@ class MoreScreen extends ConsumerWidget {
                   onOpenGoals: () => context.go(AppRoutePaths.moreGoals),
                   onOpenPreferences: () =>
                       context.go(AppRoutePaths.morePreferences),
+                  onOpenDietSetup: () =>
+                      context.go(AppRoutePaths.moreDietSetup),
                   onOpenPed: () => context.go(AppRoutePaths.ped),
                   onOpenSupport: () => context.go(AppRoutePaths.moreSupport),
                 ),
@@ -423,6 +425,8 @@ class _PreferencesSnapshotCard extends StatelessWidget {
             data: (value) {
               final dailyCalorieTargetLabel = value.dailyCalorieTargetLabel;
               final dailyProteinTargetLabel = value.dailyProteinTargetLabel;
+              final dailyCarbsTargetLabel = value.dailyCarbsTargetLabel;
+              final dailyFatTargetLabel = value.dailyFatTargetLabel;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -443,6 +447,14 @@ class _PreferencesSnapshotCard extends StatelessWidget {
                   if (dailyProteinTargetLabel != null) ...[
                     const SizedBox(height: 6),
                     Text('Protein $dailyProteinTargetLabel'),
+                  ],
+                  if (dailyCarbsTargetLabel != null) ...[
+                    const SizedBox(height: 6),
+                    Text('Carbs $dailyCarbsTargetLabel'),
+                  ],
+                  if (dailyFatTargetLabel != null) ...[
+                    const SizedBox(height: 6),
+                    Text('Fat $dailyFatTargetLabel'),
                   ],
                 ],
               );
@@ -465,6 +477,7 @@ class _NavigationCard extends StatelessWidget {
     required this.onOpenProfile,
     required this.onOpenGoals,
     required this.onOpenPreferences,
+    required this.onOpenDietSetup,
     required this.onOpenPed,
     required this.onOpenSupport,
   });
@@ -472,6 +485,7 @@ class _NavigationCard extends StatelessWidget {
   final VoidCallback onOpenProfile;
   final VoidCallback onOpenGoals;
   final VoidCallback onOpenPreferences;
+  final VoidCallback onOpenDietSetup;
   final VoidCallback onOpenPed;
   final VoidCallback onOpenSupport;
 
@@ -510,6 +524,12 @@ class _NavigationCard extends StatelessWidget {
             title: 'Units and preferences',
             subtitle: 'Unit system, timezone, week start, and daily targets.',
             onTap: onOpenPreferences,
+          ),
+          _NavigationRow(
+            icon: Icons.calculate_outlined,
+            title: 'Diet setup',
+            subtitle: 'Compute calories and macros from age, weight, and activity.',
+            onTap: onOpenDietSetup,
           ),
           _NavigationRow(
             icon: Icons.science_outlined,

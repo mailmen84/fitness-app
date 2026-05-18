@@ -8,6 +8,7 @@ import '../../../core/router/app_route_paths.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/validation/form_validators.dart';
 import '../../auth/application/auth_session.dart';
+import '../application/macro_calculator.dart';
 import '../application/onboarding_controller.dart';
 
 class OnboardingTargetScreen extends ConsumerStatefulWidget {
@@ -52,8 +53,19 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
     }
 
     final calorieTargetText = _dailyCalorieTargetController.text.trim();
-    final dailyCalorieTarget =
+    int? dailyCalorieTarget =
         calorieTargetText.isEmpty ? null : int.parse(calorieTargetText);
+
+    final estimate = MacroCalculator.compute(
+      age: draft.age,
+      heightCm: draft.heightCm,
+      weightKg: draft.startingWeightKg,
+      activity: draft.activityLevel,
+      goal: draft.goal,
+    );
+    // If the user did not pick a custom calorie target but we can compute one,
+    // use the recommendation so all four macro targets stay in sync.
+    dailyCalorieTarget ??= estimate?.dailyCalorieTarget.round();
 
     setState(() {
       _isSubmitting = true;
@@ -68,6 +80,9 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
           );
       await ref.read(authSessionProvider.notifier).completeOnboarding(
             dailyCalorieTarget: dailyCalorieTarget,
+            dailyProteinTarget: estimate?.dailyProteinTarget,
+            dailyCarbsTarget: estimate?.dailyCarbsTarget,
+            dailyFatTarget: estimate?.dailyFatTarget,
           );
       ref.read(onboardingControllerProvider.notifier).markCompleted();
 
@@ -105,6 +120,13 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
     final tokens = AppTheme.of(context);
     final draft = ref.watch(onboardingControllerProvider);
     final colorScheme = theme.colorScheme;
+    final estimate = MacroCalculator.compute(
+      age: draft.age,
+      heightCm: draft.heightCm,
+      weightKg: draft.startingWeightKg,
+      activity: draft.activityLevel,
+      goal: draft.goal,
+    );
 
     return AppScaffold(
       appBar: const AppTopAppBar(title: 'Onboarding Target'),
@@ -182,21 +204,56 @@ class _OnboardingTargetScreenState extends ConsumerState<OnboardingTargetScreen>
                   ),
                 ),
               ],
+              if (estimate != null) ...[
+                SizedBox(height: tokens.sectionSpacing),
+                AppStandardCard(
+                  color: colorScheme.primaryContainer.withOpacity(0.30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Suggested daily targets',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Based on Mifflin-St Jeor (BMR ${estimate.bmr.toStringAsFixed(0)} kcal) and your activity level (TDEE ${estimate.tdee.toStringAsFixed(0)} kcal). The numbers are saved automatically when you finish onboarding.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Calories: ${estimate.dailyCalorieTarget.toStringAsFixed(0)} kcal'),
+                      const SizedBox(height: 4),
+                      Text('Protein: ${estimate.dailyProteinTarget.toStringAsFixed(0)} g'),
+                      const SizedBox(height: 4),
+                      Text('Carbs: ${estimate.dailyCarbsTarget.toStringAsFixed(0)} g'),
+                      const SizedBox(height: 4),
+                      Text('Fat: ${estimate.dailyFatTarget.toStringAsFixed(0)} g'),
+                    ],
+                  ),
+                ),
+              ],
               SizedBox(height: tokens.sectionSpacing),
               AppStandardCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Optional target',
+                      'Override calorie target',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Leave the field empty to use the suggestion above. Protein, carbs, and fat are always recalculated from your inputs.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                     const SizedBox(height: 12),
                     AppTextField(
                       label: 'Daily calorie target (optional)',
-                      hintText: '2100',
+                      hintText: estimate?.dailyCalorieTarget.toStringAsFixed(0) ?? '2100',
                       controller: _dailyCalorieTargetController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,

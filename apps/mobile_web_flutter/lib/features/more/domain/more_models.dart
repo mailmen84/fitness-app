@@ -213,6 +213,8 @@ class PreferenceData {
     required this.weekStartsOn,
     required this.dailyCalorieTarget,
     required this.dailyProteinTarget,
+    required this.dailyCarbsTarget,
+    required this.dailyFatTarget,
     required this.onboardingCompleted,
   });
 
@@ -223,6 +225,8 @@ class PreferenceData {
   final String weekStartsOn;
   final double? dailyCalorieTarget;
   final double? dailyProteinTarget;
+  final double? dailyCarbsTarget;
+  final double? dailyFatTarget;
   final bool onboardingCompleted;
 
   String get unitSystemLabel => _unitSystemLabel(unitSystem);
@@ -242,6 +246,20 @@ class PreferenceData {
     return '${_formatAmount(dailyProteinTarget!)} g';
   }
 
+  String? get dailyCarbsTargetLabel {
+    if (dailyCarbsTarget == null) {
+      return null;
+    }
+    return '${_formatAmount(dailyCarbsTarget!)} g';
+  }
+
+  String? get dailyFatTargetLabel {
+    if (dailyFatTarget == null) {
+      return null;
+    }
+    return '${_formatAmount(dailyFatTarget!)} g';
+  }
+
   factory PreferenceData.fromJson(Map<String, dynamic> json) {
     return PreferenceData(
       id: json['id'] as String,
@@ -255,6 +273,12 @@ class PreferenceData {
       dailyProteinTarget: json['daily_protein_target'] == null
           ? null
           : jsonToDouble(json['daily_protein_target']),
+      dailyCarbsTarget: json['daily_carbs_target'] == null
+          ? null
+          : jsonToDouble(json['daily_carbs_target']),
+      dailyFatTarget: json['daily_fat_target'] == null
+          ? null
+          : jsonToDouble(json['daily_fat_target']),
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
     );
   }

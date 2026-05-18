@@ -176,6 +176,9 @@ class AuthSessionController extends Notifier<AuthSessionState> {
 
   Future<void> completeOnboarding({
     int? dailyCalorieTarget,
+    double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
   }) async {
     final accessToken = state.accessToken;
     if (accessToken == null || accessToken.trim().isEmpty) {
@@ -185,6 +188,9 @@ class AuthSessionController extends Notifier<AuthSessionState> {
     await _repository.completeOnboarding(
       accessToken: accessToken,
       dailyCalorieTarget: dailyCalorieTarget,
+      dailyProteinTarget: dailyProteinTarget,
+      dailyCarbsTarget: dailyCarbsTarget,
+      dailyFatTarget: dailyFatTarget,
     );
     state = state.copyWith(
       hasCompletedOnboarding: true,

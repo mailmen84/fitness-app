@@ -33,6 +33,8 @@ abstract class MoreRepository {
     required String weekStartsOn,
     double? dailyCalorieTarget,
     double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
     required bool onboardingCompleted,
   });
 }
@@ -133,6 +135,8 @@ class ApiMoreRepository implements MoreRepository {
     required String weekStartsOn,
     double? dailyCalorieTarget,
     double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
     required bool onboardingCompleted,
   }) async {
     final payload = await apiClient.putJsonMap(
@@ -143,6 +147,8 @@ class ApiMoreRepository implements MoreRepository {
         'week_starts_on': weekStartsOn,
         'daily_calorie_target': dailyCalorieTarget,
         'daily_protein_target': dailyProteinTarget,
+        'daily_carbs_target': dailyCarbsTarget,
+        'daily_fat_target': dailyFatTarget,
         'onboarding_completed': onboardingCompleted,
       },
     );

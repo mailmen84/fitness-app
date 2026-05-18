@@ -31,6 +31,9 @@ abstract class AuthRepository {
   Future<void> completeOnboarding({
     required String accessToken,
     int? dailyCalorieTarget,
+    double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
   });
 
   Future<String?> readStoredAccessToken();
@@ -126,6 +129,9 @@ class ApiAuthRepository implements AuthRepository {
   Future<void> completeOnboarding({
     required String accessToken,
     int? dailyCalorieTarget,
+    double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
   }) async {
     final client = _authorizedClient(accessToken);
     final currentPreferences = await client.getMap('/preferences');
@@ -137,7 +143,12 @@ class ApiAuthRepository implements AuthRepository {
         'week_starts_on': currentPreferences['week_starts_on'] ?? 'monday',
         'daily_calorie_target':
             dailyCalorieTarget ?? currentPreferences['daily_calorie_target'],
-        'daily_protein_target': currentPreferences['daily_protein_target'],
+        'daily_protein_target':
+            dailyProteinTarget ?? currentPreferences['daily_protein_target'],
+        'daily_carbs_target':
+            dailyCarbsTarget ?? currentPreferences['daily_carbs_target'],
+        'daily_fat_target':
+            dailyFatTarget ?? currentPreferences['daily_fat_target'],
         'onboarding_completed': true,
       },
     );

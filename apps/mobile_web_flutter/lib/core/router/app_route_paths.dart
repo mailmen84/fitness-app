@@ -27,6 +27,7 @@ class AppRoutePaths {
   static const moreProfile = '/more/profile';
   static const moreGoals = '/more/goals';
   static const morePreferences = '/more/preferences';
+  static const moreDietSetup = '/more/diet-setup';
   static const moreSupport = '/more/support';
   static const ped = '/more/ped';
 

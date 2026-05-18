@@ -14,6 +14,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/password_reset_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
+import '../../features/more/presentation/diet_setup_screen.dart';
 import '../../features/more/presentation/goal_settings_screen.dart';
 import '../../features/more/presentation/more_screen.dart';
 import '../../features/more/presentation/preferences_screen.dart';
@@ -247,6 +248,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'preferences',
                     builder: (context, state) => const PreferencesScreen(),
+                  ),
+                  GoRoute(
+                    path: 'diet-setup',
+                    builder: (context, state) => const DietSetupScreen(),
                   ),
                   GoRoute(
                     path: 'support',

@@ -24,6 +24,8 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
   final _timezoneController = TextEditingController();
   final _dailyCalorieTargetController = TextEditingController();
   final _dailyProteinTargetController = TextEditingController();
+  final _dailyCarbsTargetController = TextEditingController();
+  final _dailyFatTargetController = TextEditingController();
 
   ProviderSubscription<AsyncValue<PreferenceData>>? _preferencesSubscription;
   String _unitSystem = 'metric';
@@ -56,6 +58,8 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
     _timezoneController.dispose();
     _dailyCalorieTargetController.dispose();
     _dailyProteinTargetController.dispose();
+    _dailyCarbsTargetController.dispose();
+    _dailyFatTargetController.dispose();
     super.dispose();
   }
 
@@ -76,6 +80,12 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
       _dailyProteinTargetController.text = preferences.dailyProteinTarget == null
           ? ''
           : formatMoreNumber(preferences.dailyProteinTarget!);
+      _dailyCarbsTargetController.text = preferences.dailyCarbsTarget == null
+          ? ''
+          : formatMoreNumber(preferences.dailyCarbsTarget!);
+      _dailyFatTargetController.text = preferences.dailyFatTarget == null
+          ? ''
+          : formatMoreNumber(preferences.dailyFatTarget!);
       _initializedForm = true;
     }
 
@@ -95,6 +105,8 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
 
     final calorieText = _dailyCalorieTargetController.text.trim();
     final proteinText = _dailyProteinTargetController.text.trim();
+    final carbsText = _dailyCarbsTargetController.text.trim();
+    final fatText = _dailyFatTargetController.text.trim();
     final updated = await ref
         .read(preferencesSubmissionControllerProvider.notifier)
         .submit(
@@ -105,6 +117,9 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               calorieText.isEmpty ? null : double.parse(calorieText),
           dailyProteinTarget:
               proteinText.isEmpty ? null : double.parse(proteinText),
+          dailyCarbsTarget:
+              carbsText.isEmpty ? null : double.parse(carbsText),
+          dailyFatTarget: fatText.isEmpty ? null : double.parse(fatText),
           onboardingCompleted: currentPreferences.onboardingCompleted,
         );
 
@@ -278,6 +293,30 @@ class _PreferencesScreenState extends ConsumerState<PreferencesScreen> {
               validator: (value) => FormValidators.optionalDecimal(
                 value,
                 label: 'Daily protein target',
+                min: 1,
+              ),
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              label: 'Daily carbs target',
+              controller: _dailyCarbsTargetController,
+              hintText: 'Optional',
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) => FormValidators.optionalDecimal(
+                value,
+                label: 'Daily carbs target',
+                min: 1,
+              ),
+            ),
+            const SizedBox(height: 16),
+            AppTextField(
+              label: 'Daily fat target',
+              controller: _dailyFatTargetController,
+              hintText: 'Optional',
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) => FormValidators.optionalDecimal(
+                value,
+                label: 'Daily fat target',
                 min: 1,
               ),
             ),

@@ -19,6 +19,8 @@ class PreferencesSubmissionController
     required String weekStartsOn,
     double? dailyCalorieTarget,
     double? dailyProteinTarget,
+    double? dailyCarbsTarget,
+    double? dailyFatTarget,
     required bool onboardingCompleted,
   }) async {
     state = const AsyncLoading();
@@ -30,6 +32,8 @@ class PreferencesSubmissionController
         weekStartsOn: weekStartsOn,
         dailyCalorieTarget: dailyCalorieTarget,
         dailyProteinTarget: dailyProteinTarget,
+        dailyCarbsTarget: dailyCarbsTarget,
+        dailyFatTarget: dailyFatTarget,
         onboardingCompleted: onboardingCompleted,
       );
       state = const AsyncData(null);
