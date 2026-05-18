@@ -17,6 +17,7 @@ class FoodSearchResult {
     required this.id,
     required this.name,
     required this.brand,
+    required this.barcode,
     required this.defaultServingAmount,
     required this.defaultServingUnit,
     required this.isVerified,
@@ -29,6 +30,7 @@ class FoodSearchResult {
   final String id;
   final String name;
   final String? brand;
+  final String? barcode;
   final double defaultServingAmount;
   final String defaultServingUnit;
   final bool isVerified;
@@ -45,6 +47,7 @@ class FoodSearchResult {
       id: json['id'] as String,
       name: json['name'] as String? ?? 'Food item',
       brand: json['brand'] as String?,
+      barcode: json['barcode'] as String?,
       defaultServingAmount: _normalizedServingAmount(json['default_serving_amount']),
       defaultServingUnit: json['default_serving_unit'] as String? ?? 'serving',
       isVerified: json['is_verified'] as bool? ?? false,
@@ -84,6 +87,7 @@ class FoodDetail {
     required this.id,
     required this.name,
     required this.brand,
+    required this.barcode,
     required this.defaultServingAmount,
     required this.defaultServingUnit,
     required this.isVerified,
@@ -97,6 +101,7 @@ class FoodDetail {
   final String id;
   final String name;
   final String? brand;
+  final String? barcode;
   final double defaultServingAmount;
   final String defaultServingUnit;
   final bool isVerified;
@@ -115,6 +120,7 @@ class FoodDetail {
       id: json['id'] as String,
       name: json['name'] as String? ?? 'Food item',
       brand: json['brand'] as String?,
+      barcode: json['barcode'] as String?,
       defaultServingAmount: _normalizedServingAmount(json['default_serving_amount']),
       defaultServingUnit: json['default_serving_unit'] as String? ?? 'serving',
       isVerified: json['is_verified'] as bool? ?? false,
@@ -125,6 +131,66 @@ class FoodDetail {
       nutrients: nutrientsJson
           .map((item) => FoodNutrient.fromJson(item as Map<String, dynamic>))
           .toList(growable: false),
+    );
+  }
+}
+
+/// Draft returned from the OpenFoodFacts lookup endpoint. The UI uses this
+/// to prefill the review form. Any of the macro fields can be null when OFF
+/// does not provide that nutriment.
+class OpenFoodFactsDraft {
+  const OpenFoodFactsDraft({
+    required this.barcode,
+    required this.found,
+    required this.isComplete,
+    required this.name,
+    required this.brand,
+    required this.defaultServingAmount,
+    required this.defaultServingUnit,
+    required this.calories,
+    required this.protein,
+    required this.carbs,
+    required this.fat,
+    required this.imageUrl,
+    required this.sourceUrl,
+  });
+
+  final String barcode;
+  final bool found;
+  final bool isComplete;
+  final String? name;
+  final String? brand;
+  final double? defaultServingAmount;
+  final String? defaultServingUnit;
+  final double? calories;
+  final double? protein;
+  final double? carbs;
+  final double? fat;
+  final String? imageUrl;
+  final String? sourceUrl;
+
+  bool get hasMissingMacros => !isComplete && found;
+
+  factory OpenFoodFactsDraft.fromJson(Map<String, dynamic> json) {
+    double? readDouble(Object? value) {
+      if (value == null) return null;
+      return jsonToDouble(value);
+    }
+
+    return OpenFoodFactsDraft(
+      barcode: json['barcode'] as String? ?? '',
+      found: json['found'] as bool? ?? false,
+      isComplete: json['is_complete'] as bool? ?? false,
+      name: json['name'] as String?,
+      brand: json['brand'] as String?,
+      defaultServingAmount: readDouble(json['default_serving_amount']),
+      defaultServingUnit: json['default_serving_unit'] as String?,
+      calories: readDouble(json['calories']),
+      protein: readDouble(json['protein']),
+      carbs: readDouble(json['carbs']),
+      fat: readDouble(json['fat']),
+      imageUrl: json['image_url'] as String?,
+      sourceUrl: json['source_url'] as String?,
     );
   }
 }
