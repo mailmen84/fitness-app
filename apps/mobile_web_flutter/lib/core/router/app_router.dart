@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/add/presentation/add_screen.dart';
 import '../../features/add/presentation/barcode_review_screen.dart';
 import '../../features/add/presentation/barcode_scanner_screen.dart';
+import '../../features/add/presentation/custom_food_screen.dart';
 import '../../features/add/presentation/food_detail_screen.dart';
 import '../../features/add/presentation/food_search_screen.dart';
 import '../../features/add/presentation/meal_detail_screen.dart';
@@ -181,6 +182,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'custom',
+                    builder: (context, state) => const CustomFoodScreen(),
                   ),
                   GoRoute(
                     path: 'food/:foodId',

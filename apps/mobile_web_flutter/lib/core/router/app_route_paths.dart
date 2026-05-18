@@ -16,6 +16,7 @@ class AppRoutePaths {
   static const addSearch = '/add/search';
   static const addScan = '/add/scan';
   static const addScanReview = '/add/scan/review';
+  static const addCustom = '/add/custom';
   static const addFoodBase = '/add/food';
   static const addMealBase = '/add/meal';
   static const progress = '/progress';

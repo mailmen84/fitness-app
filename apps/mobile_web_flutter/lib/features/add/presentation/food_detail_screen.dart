@@ -9,6 +9,7 @@ import '../../today/application/today_dashboard_controller.dart';
 import '../application/food_search_controller.dart';
 import '../application/meal_logging_flow_controller.dart';
 import '../domain/meal_logging_models.dart';
+import '../domain/serving_units.dart';
 import 'widgets/meal_logging_target_card.dart';
 
 class FoodDetailScreen extends ConsumerStatefulWidget {
@@ -327,16 +328,26 @@ class _FoodDetailContent extends StatelessWidget {
                       const TextInputType.numberWithOptions(decimal: true),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedUnit ?? food.defaultServingUnit,
-                  items: [
-                    DropdownMenuItem<String>(
-                      value: food.defaultServingUnit,
-                      child: Text(food.defaultServingUnit),
-                    ),
-                  ],
-                  decoration: const InputDecoration(labelText: 'Unit'),
-                  onChanged: onUnitChanged,
+                Builder(
+                  builder: (context) {
+                    final current = selectedUnit ?? food.defaultServingUnit;
+                    final options = ServingUnits.optionsFor(current);
+                    if (!options.contains(food.defaultServingUnit)) {
+                      options.add(food.defaultServingUnit);
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: current,
+                      items: [
+                        for (final unit in options)
+                          DropdownMenuItem<String>(
+                            value: unit,
+                            child: Text(ServingUnits.label(unit)),
+                          ),
+                      ],
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                      onChanged: onUnitChanged,
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 AppTextField(

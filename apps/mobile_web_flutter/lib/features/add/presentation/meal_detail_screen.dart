@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../today/application/today_dashboard_controller.dart';
 import '../../today/domain/today_dashboard.dart';
 import '../application/meal_logging_flow_controller.dart';
+import '../domain/serving_units.dart';
 
 class MealDetailScreen extends ConsumerStatefulWidget {
   const MealDetailScreen({
@@ -183,16 +184,27 @@ class _MealDetailScreenState extends ConsumerState<MealDetailScreen> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: _selectedUnit ?? widget.entry!.unit,
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: widget.entry!.unit,
-                        child: Text(widget.entry!.unit),
-                      ),
-                    ],
-                    decoration: const InputDecoration(labelText: 'Unit'),
-                    onChanged: (value) => setState(() => _selectedUnit = value),
+                  Builder(
+                    builder: (context) {
+                      final current = _selectedUnit ?? widget.entry!.unit;
+                      final options = ServingUnits.optionsFor(current);
+                      if (!options.contains(widget.entry!.unit)) {
+                        options.add(widget.entry!.unit);
+                      }
+                      return DropdownButtonFormField<String>(
+                        value: current,
+                        items: [
+                          for (final unit in options)
+                            DropdownMenuItem<String>(
+                              value: unit,
+                              child: Text(ServingUnits.label(unit)),
+                            ),
+                        ],
+                        decoration: const InputDecoration(labelText: 'Unit'),
+                        onChanged: (value) =>
+                            setState(() => _selectedUnit = value),
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
                   AppTextField(
