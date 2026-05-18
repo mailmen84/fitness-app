@@ -70,6 +70,12 @@ class AddScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 AppSecondaryButton(
+                  label: 'Scan barcode',
+                  expand: true,
+                  onPressed: () => context.go(AppRoutePaths.addScan),
+                ),
+                const SizedBox(height: 12),
+                AppSecondaryButton(
                   label: 'Quick add setup',
                   expand: true,
                   onPressed: () => context.go(AppRoutePaths.addQuick),
@@ -81,7 +87,7 @@ class AddScreen extends ConsumerWidget {
           const AppEmptyStateBlock(
             title: 'More add shortcuts come later',
             message:
-                'Barcode scanning, recipes, and extra shortcuts stay out of scope for now. Use food search or quick add setup for the stable MVP path.',
+                'Recipes and other shortcuts stay out of scope for now. Use food search, the barcode scanner, or quick add setup for the stable MVP path.',
           ),
         ],
       ),

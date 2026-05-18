@@ -106,6 +106,12 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                   expand: true,
                   onPressed: () => searchController.search(_searchController.text),
                 ),
+                const SizedBox(height: 12),
+                AppSecondaryButton(
+                  label: 'Scan barcode instead',
+                  expand: true,
+                  onPressed: () => context.go(AppRoutePaths.addScan),
+                ),
               ],
             ),
           ),
@@ -134,10 +140,15 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                         'Search by a food name to open its detail screen and add it to the selected meal.',
                   )
                 : value.isEmpty
-                    ? const AppEmptyStateBlock(
+                    ? AppEmptyStateBlock(
                         title: 'No matching foods found',
                         message:
-                            'Try a broader search term from the seeded demo dataset, like chicken, rice, banana, or oats.',
+                            'Try a broader search term from the seeded demo dataset, or scan a barcode to fetch product data from Open Food Facts.',
+                        action: AppPrimaryButton(
+                          label: 'Scan barcode',
+                          expand: true,
+                          onPressed: () => context.go(AppRoutePaths.addScan),
+                        ),
                       )
                     : Column(
                         children: [

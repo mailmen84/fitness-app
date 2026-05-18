@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/add/presentation/add_screen.dart';
+import '../../features/add/presentation/barcode_review_screen.dart';
+import '../../features/add/presentation/barcode_scanner_screen.dart';
 import '../../features/add/presentation/food_detail_screen.dart';
 import '../../features/add/presentation/food_search_screen.dart';
 import '../../features/add/presentation/meal_detail_screen.dart';
@@ -166,6 +168,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'search',
                     builder: (context, state) => const FoodSearchScreen(),
+                  ),
+                  GoRoute(
+                    path: 'scan',
+                    builder: (context, state) => const BarcodeScannerScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'review/:barcode',
+                        builder: (context, state) => BarcodeReviewScreen(
+                          barcode: state.pathParameters['barcode']!,
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'food/:foodId',
