@@ -20,6 +20,7 @@ The Flutter app currently includes:
 - package and bundle identity set to `Fitness App` / `com.fitnessapp.mobile`
 - secure token storage on Android and iOS
 - a first compact-width pass on shared shell spacing, app-bar titling, and bottom navigation behavior
+- Android-specific keystore, APK, and device-validation guidance in [android/README.md](C:/New folder/fitness-app/apps/mobile_web_flutter/android/README.md)
 
 ## First-Time Setup
 
@@ -59,21 +60,27 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000/api/v1
 
 ## Build For Android Packaging Work
 
-Create a local signing config when you want a cleaner release APK path:
+See [android/README.md](C:/New folder/fitness-app/apps/mobile_web_flutter/android/README.md) for the full signing, build, install, and smoke-test flow.
+
+Short version:
 
 ```powershell
 Copy-Item android\key.properties.example android\key.properties
 New-Item -ItemType Directory -Force android\keystore | Out-Null
 keytool -genkeypair -v -keystore android\keystore\upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
-```
-
-Then build the APK:
-
-```powershell
 flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com
 ```
 
 For local developer smoke work, the project will still fall back to debug signing if `android\key.properties` is missing. That fallback is only meant to keep local install testing unblocked.
+
+## Tooling Notes
+
+For a clean Android build path, the local machine should satisfy `flutter doctor -v`.
+
+On the Windows validation machine used in this repo session, the current blockers reported by Flutter are:
+
+- Android SDK platform 36 still needs to be installed
+- if Flutter reports plugin symlink issues, Windows Developer Mode should be enabled
 
 ## Secondary Web Build Path
 
@@ -89,6 +96,7 @@ flutter build web --release --dart-define=API_BASE_URL=https://staging.example.c
 
 ```powershell
 flutter test
+flutter doctor -v
 ```
 
 ## Runtime Config
@@ -109,16 +117,15 @@ The current MVP stores the access token locally so sessions restore between laun
 
 Signing out clears the stored token.
 
-## Current Mobile Gaps
+## Current Android Gaps
 
-The main gaps before this feels like a true installable phone app are:
+The main gaps before this feels like a clean installable Android app are:
 
-- a real release keystore still needs to be created locally and kept out of version control
+- a real local release keystore still needs to be created and kept out of version control
 - launcher icons are still the default generated Flutter assets
-- Android local/demo release traffic still assumes temporary cleartext support for non-HTTPS backends
-- iPhone signing, transport policy, and device-install validation still need their own follow-up pass
-- a final phone-sized polish pass is still needed on some denser detail and settings screens
-- the documented APK install flow still needs a clean end-to-end smoke pass on a real device or emulator
+- physical-phone validation still needs a reachable backend URL, ideally HTTPS
+- this machine still needs Android SDK platform 36 before a clean local APK build can be completed
+- the first successful end-to-end `flutter build apk --release` plus `adb install` pass still needs to be completed
 
 ## Local Demo Notes
 

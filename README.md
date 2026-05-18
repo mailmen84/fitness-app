@@ -12,9 +12,9 @@ Do not create a new root folder, do not create a nested `fitness-app` folder, an
 
 ## Current Phase
 
-Current phase: mobile-native readiness and packaging.
+Current phase: Android packaging and device validation.
 
-This phase focuses on correcting the project toward real phone-app delivery, tightening mobile UX and session behavior, and preparing the app for Android packaging and installation without broad rewrites or unrelated new features.
+This phase focuses on producing a real installable Android build path, documenting signing and APK steps clearly, and preparing the app for the first clean physical-phone smoke pass without broad rewrites or unrelated new features.
 
 ## Primary Product Direction
 
@@ -43,6 +43,7 @@ Working today:
 - generated Android and iOS runners already exist in the Flutter project
 - Android and iOS app identity now uses `Fitness App` and `com.fitnessapp.mobile` instead of stock Flutter placeholder values
 - phone session restore now uses secure storage on Android and iOS
+- the Android runner now has a documented local keystore path, release-signing path, and Android device smoke checklist
 
 Still intentionally not product-complete:
 
@@ -87,16 +88,16 @@ fitness-app/
   NEXT_TASK.md
 ```
 
-## Current Mobile Gaps
+## Current Android Packaging Gaps
 
-Before this feels like a truly installable phone app, the current repo still has these concrete gaps:
+Before this becomes a clean real-phone install flow, the remaining concrete gaps are:
 
-- a real Android release keystore still needs to be created locally and wired through `apps/mobile_web_flutter/android/key.properties`; the repo now supports that flow, but it cannot ship secrets
-- launcher icons are still the default generated Flutter assets, so the packaged app still looks unfinished on a phone home screen
-- Android local/demo networking currently relies on `android:usesCleartextTraffic="true"` for non-HTTPS backends; production-ready mobile delivery should move to HTTPS and tighter network policy
-- iOS naming is corrected, but iPhone signing, transport policy, and physical-device validation still need their own follow-up pass
-- some denser secondary forms and detail screens still need a final phone-sized touch and keyboard polish pass
-- the Android APK build/install flow is now documented, but it still needs a clean emulator or real-device smoke pass end to end
+- a local Android release keystore still needs to be created and referenced from `apps/mobile_web_flutter/android/key.properties`
+- the current Windows validation machine still reports missing Android SDK platform 36 in `flutter doctor -v`
+- the same machine may still need Windows Developer Mode if Flutter reports plugin symlink support issues during package/build steps
+- launcher icons are still the default generated Flutter assets
+- physical-phone validation still needs a reachable backend URL, ideally HTTPS rather than local cleartext-only development networking
+- the first successful end-to-end `flutter build apk --release` plus `adb install` pass still needs to be completed on a real machine after the SDK/tooling gap is closed
 
 ## Local Quick Start
 
@@ -152,9 +153,11 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 
 `API_BASE_URL` can be either a backend origin like `http://localhost:8000` or the full API prefix like `http://localhost:8000/api/v1`.
 
-### 5. Build a local Android APK
+### 5. Prepare the Android signing path
 
-When you want a cleaner release-style APK path, create a local signing config first:
+See [android/README.md](C:/New folder/fitness-app/apps/mobile_web_flutter/android/README.md) for the exact keystore and `android/key.properties` steps.
+
+Short version:
 
 ```powershell
 cd apps\mobile_web_flutter
@@ -163,7 +166,7 @@ New-Item -ItemType Directory -Force android\keystore | Out-Null
 keytool -genkeypair -v -keystore android\keystore\upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Then build and install:
+### 6. Build and install a local Android APK
 
 ```powershell
 cd apps\mobile_web_flutter
@@ -205,7 +208,7 @@ For Android emulator work, `10.0.2.2` is usually the local host bridge. For web,
 
 Web staging and hosted browser access remain useful for demos, QA, and secondary access.
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for the AWS staging plan, but treat it as a secondary delivery path behind the primary mobile-native goal.
+See [DEPLOYMENT.md](C:/New folder/fitness-app/DEPLOYMENT.md) for the AWS staging plan, but treat it as a secondary delivery path behind the primary Android installability goal.
 
 ## Local Verification
 
@@ -221,14 +224,16 @@ Flutter:
 ```powershell
 cd apps\mobile_web_flutter
 flutter test
+flutter doctor -v
 ```
 
-Suggested manual smoke pass for the current mobile-first milestone:
+Suggested manual Android device smoke pass:
 
-- Android emulator or physical-device install and first launch
-- signup or login on a phone-sized screen
+- install the APK and confirm the launcher label shows `Fitness App`
+- signup and login on a phone-sized screen
 - onboarding completion on a phone-sized screen
 - Today meal logging on phone
+- Add flow food search and save on phone
 - Nutrition overview on phone
 - Progress save flows on phone
 - More profile/goals/preferences save flows on phone
@@ -243,10 +248,11 @@ These root files are the current source of truth for repository direction:
 - `CODEX_CONTEXT.md`
 - `NEXT_TASK.md`
 - `DEPLOYMENT.md`
+- `apps/mobile_web_flutter/README.md`
 
 ## Next Likely Milestone
 
-After mobile-native readiness and packaging, the next likely milestone should be Android install validation and first packaged-device smoke passes.
+After Android packaging and device validation, the next likely milestone should be first physical-device stabilization plus launcher/icon polish for broader distribution prep.
 
 ## Final Guardrail
 

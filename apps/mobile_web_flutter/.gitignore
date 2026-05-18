@@ -35,6 +35,7 @@ migrate_working_dir/
 
 # Android signing
 /android/key.properties
+/android/keystore/
 
 # Symbolication related
 app.*.symbols

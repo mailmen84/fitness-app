@@ -148,16 +148,23 @@ These milestones are already present in the repository state:
 - iPhone-readiness is the second platform priority
 - web and desktop remain supported only as secondary access paths
 
+16. Android packaging and device-validation preparation
+- Android app identity is aligned to `Fitness App` / `com.fitnessapp.mobile`
+- Android and iOS session restore now uses secure storage on phones
+- Android network policy is narrowed to local emulator/dev cleartext hosts instead of app-wide cleartext allowance
+- a local keystore path and `android/key.properties.example` exist for release signing setup
+- the Android runner now has a practical packaging guide and device smoke checklist
+
 ## Current Phase
 
-Current phase: mobile-native readiness and packaging.
+Current phase: Android packaging and device validation.
 
 Status:
 
 - the project is a hardened authenticated MVP with working Android and iOS runners present
-- the active work is to close the gap between that MVP and a true installable Android-first phone app
-- basic Android/iOS package identity, phone-secure session storage, and a first compact-width shell pass are now in place
+- the active work is to turn the Android runner into a real locally installable APK path
 - web and desktop still exist, but they no longer define the main product direction
+- on the current Windows validation machine, `flutter doctor -v` still reports missing Android SDK platform 36 before a clean APK build can complete
 
 ## What Already Exists
 
@@ -176,6 +183,7 @@ Status:
 - Android and iOS app identity now uses `Fitness App` / `com.fitnessapp.mobile` instead of Flutter placeholder defaults
 - Android and iOS session restore now uses secure token storage on phones and file storage on desktop-style IO platforms
 - shared shell spacing, titles, and bottom navigation now have a first compact-width pass for smaller screens
+- Android-specific keystore setup, APK build steps, and device smoke checklist are documented in `apps/mobile_web_flutter/android/README.md`
 - web build path still available for secondary access and demos
 
 ### Backend
@@ -191,27 +199,27 @@ Status:
 
 ## Current Functional Focus
 
-The active focus is mobile-native readiness and packaging.
+The active focus is Android packaging and device validation.
 
 That means current work should:
 
-- prioritize phone-sized UX and installable-app behavior first
-- review navigation, layout density, touch targets, keyboard handling, and mobile session behavior screen by screen
-- make Android packaging and APK install readiness explicit
-- keep iPhone architecture and packaging readiness close behind Android work
-- treat web and desktop as secondary access paths unless the milestone explicitly needs them
+- prioritize a clean local APK build path first
+- document keystore creation and `android/key.properties` setup clearly
+- verify the Android manifest, package id, signing path, and release assumptions
+- define a practical real-device smoke checklist for the current MVP
+- keep web and desktop as secondary access paths unless the milestone explicitly needs them
 - avoid broad rewrites, unrelated product work, or new feature-module expansion
 
-## Current Mobile Gaps
+## Current Android Gaps
 
-The current repo still has these concrete mobile-readiness gaps:
+The current repo still has these concrete Android-readiness gaps:
 
 - a real Android release keystore still needs to be created locally and referenced from `android/key.properties`
 - launcher icons are still the default generated Flutter assets
-- Android local/demo release traffic still relies on temporary cleartext support for non-HTTPS backends
-- iPhone signing, transport policy, and device-install validation still need their own follow-up pass
-- some denser secondary forms and detail screens still need a final small-screen touch and keyboard polish pass
-- the APK build/install flow is now documented, but it still needs a clean emulator or physical-device smoke pass
+- physical-phone validation still needs a reachable backend URL, ideally HTTPS
+- the current Windows validation machine still needs Android SDK platform 36 to satisfy `flutter doctor -v`
+- Windows Developer Mode may still be required on local developer machines if Flutter reports plugin symlink support issues
+- the first successful end-to-end `flutter build apk --release` plus `adb install` pass still needs to be completed
 
 ## Current Auth Rule
 
@@ -242,4 +250,4 @@ Do not add these on your own:
 
 ## Expected Next Step After This Phase
 
-After mobile-native readiness and packaging, the next likely milestone should be Android install validation and phone-device stabilization.
+After Android packaging and device validation, the next likely milestone should be first physical-device stabilization and launcher/icon polish.
