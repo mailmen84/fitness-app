@@ -40,6 +40,17 @@ class FoodsRepository(BaseRepository):
         count = await self.session.scalar(select(func.count(Food.id)))
         return bool(count)
 
+    async def get_food_by_barcode(self, barcode: str) -> Food | None:
+        normalized = barcode.strip()
+        if not normalized:
+            return None
+        result = await self.session.execute(
+            select(Food)
+            .options(selectinload(Food.nutrients))
+            .where(Food.barcode == normalized)
+        )
+        return result.scalar_one_or_none()
+
     def create_food(
         self,
         *,
@@ -49,10 +60,12 @@ class FoodsRepository(BaseRepository):
         default_serving_unit: str | None,
         source: str,
         is_verified: bool,
+        barcode: str | None = None,
     ) -> Food:
         food = Food(
             name=name,
             brand=brand,
+            barcode=barcode,
             default_serving_amount=default_serving_amount,
             default_serving_unit=default_serving_unit,
             source=source,

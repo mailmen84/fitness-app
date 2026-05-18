@@ -14,6 +14,7 @@ class Food(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     name: Mapped[str] = mapped_column(String(160), index=True, nullable=False)
     brand: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    barcode: Mapped[str | None] = mapped_column(String(32), nullable=True)
     default_serving_amount: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     default_serving_unit: Mapped[str | None] = mapped_column(String(32), nullable=True)
     source: Mapped[str] = mapped_column(String(32), default="internal", nullable=False)
