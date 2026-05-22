@@ -38,8 +38,11 @@ class TestCoerceDecimal:
         assert _coerce_decimal('abc123') is None
 
     def test_clips_absurd_values(self):
-        # 99999999 kcal -> clipped to None
+        # 99999999 kcal -> clipped to None (both Q2 and Q4 scale).
         assert _coerce_decimal('99999999') is None
+        from scripts.import_off import _Q4
+        assert _coerce_decimal('99999999', _Q4) is None
+        assert _coerce_decimal('115195467', _Q4) is None
 
 
 class TestPickName:

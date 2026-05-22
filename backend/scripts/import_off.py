@@ -79,6 +79,13 @@ def _open_csv(path: str) -> io.TextIOBase:
     return io.TextIOWrapper(binary, encoding='utf-8', errors='replace', newline='')
 
 
+# Sanity cap for nutrient amounts. food_nutrients.amount is Numeric(12,4),
+# which fits up to ~99,999,999. But realistically anything above 10,000 per
+# 100g is a typo or wrong unit in the OFF data (e.g. 115,195,467 kcal/100g).
+# Same logic for default_serving_amount (Numeric(10,2), max ~99,999,999).
+_MAX_REASONABLE_VALUE = Decimal('100000')
+
+
 def _coerce_decimal(value: str | None, quantize: Decimal = _Q2) -> Decimal | None:
     if value is None:
         return None
@@ -91,9 +98,9 @@ def _coerce_decimal(value: str | None, quantize: Decimal = _Q2) -> Decimal | Non
         return None
     if d < 0:
         return None
-    # Cap absurdly large values that some OFF rows contain (e.g. typos like
-    # 99999999 kcal). Anything > 10k is almost certainly wrong; clip to None.
-    if quantize is _Q2 and d > 100000:
+    # Cap absurdly large values that some OFF rows contain. This protects both
+    # serving amounts and nutrient amounts from numeric overflow on insert.
+    if d > _MAX_REASONABLE_VALUE:
         return None
     try:
         return d.quantize(quantize)
