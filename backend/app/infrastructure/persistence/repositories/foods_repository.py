@@ -1,6 +1,6 @@
-﻿from uuid import UUID
+from uuid import UUID
 
-from sqlalchemy import case, func, select
+from sqlalchemy import bindparam, case, func, select
 from sqlalchemy.orm import selectinload
 
 from app.domain.foods.models import Food, FoodNutrient
@@ -17,23 +17,57 @@ class FoodsRepository(BaseRepository):
         return result.scalar_one_or_none()
 
     async def search_by_name(self, query: str, limit: int = 20) -> list[Food]:
+        """Fuzzy search across name and brand.
+
+        Strategy:
+        - For very short queries (< 3 chars) we fall back to plain ILIKE prefix
+          to keep results predictable and avoid noisy trigram matches.
+        - For longer queries we use pg_trgm: combine an ILIKE '%q%' filter
+          (uses GIN index) with similarity-based ordering plus deterministic
+          tiebreakers (exact match -> prefix -> contains -> alpha).
+        """
         normalized_query = query.strip()
         if not normalized_query:
             return []
 
         lowered_query = normalized_query.lower()
+        ilike_pattern = f'%{normalized_query}%'
+
+        # Boost tier: exact (0) -> prefix (1) -> substring (2) -> other (3)
         ranking = case(
             (func.lower(Food.name) == lowered_query, 0),
             (func.lower(Food.name).like(f'{lowered_query}%'), 1),
-            else_=2,
+            (func.lower(Food.name).like(f'%{lowered_query}%'), 2),
+            else_=3,
         )
-        result = await self.session.scalars(
-            select(Food)
-            .options(selectinload(Food.nutrients))
-            .where(Food.name.ilike(f'%{normalized_query}%'))
-            .order_by(ranking, Food.name.asc())
-            .limit(limit)
-        )
+
+        # Trigram similarity (only meaningful for 3+ char queries).
+        # similarity() returns a float in [0,1]; higher is more similar.
+        if len(normalized_query) >= 3:
+            similarity = func.greatest(
+                func.similarity(Food.name, normalized_query),
+                func.coalesce(func.similarity(Food.brand, normalized_query), 0.0),
+            )
+            stmt = (
+                select(Food)
+                .options(selectinload(Food.nutrients))
+                .where(
+                    Food.name.ilike(ilike_pattern)
+                    | Food.brand.ilike(ilike_pattern)
+                )
+                .order_by(ranking, similarity.desc(), Food.name.asc())
+                .limit(limit)
+            )
+        else:
+            stmt = (
+                select(Food)
+                .options(selectinload(Food.nutrients))
+                .where(Food.name.ilike(ilike_pattern))
+                .order_by(ranking, Food.name.asc())
+                .limit(limit)
+            )
+
+        result = await self.session.scalars(stmt)
         return list(result)
 
     async def has_foods(self) -> bool:
