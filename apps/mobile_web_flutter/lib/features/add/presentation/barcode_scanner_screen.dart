@@ -21,11 +21,20 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   bool _isHandlingDetection = false;
   String? _lastErrorMessage;
 
+  // Cooldown between detection attempts so the user can frame the barcode
+  // without the scanner firing on a half-captured image. 800ms strikes a
+  // balance between responsiveness and "give me a moment to aim".
+  static const Duration _detectionCooldown = Duration(milliseconds: 800);
+
   @override
   void initState() {
     super.initState();
     _scannerController = MobileScannerController(
+      // noDuplicates + a long detectionTimeout ensures the scanner doesn't
+      // hammer the same frames over and over while the user aims. Each
+      // detection attempt is followed by a quiet period.
       detectionSpeed: DetectionSpeed.noDuplicates,
+      detectionTimeoutMs: _detectionCooldown.inMilliseconds,
       formats: const [
         BarcodeFormat.ean13,
         BarcodeFormat.ean8,
