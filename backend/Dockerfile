@@ -5,6 +5,7 @@ WORKDIR /app
 COPY pyproject.toml README.md alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
+COPY scripts ./scripts
 COPY entrypoint.sh ./entrypoint.sh
 
 RUN sed -i 's/\r$//' /app/entrypoint.sh \
